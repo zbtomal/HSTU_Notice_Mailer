@@ -1,0 +1,99 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+pip-wheel-metadata/
+share/python-wheels/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.ENV/
+env.bak/
+venv.bak/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Logs and local run files
+logs/
+*.log
+
+# Database files
+*.sqlite3
+*.db
+
+# Environment variables / secrets
+.env
+.env.*
+.secrets
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# Python tooling
+.mypy_cache/
+__pypackages__/
+*.venv
+.pytest_cache/
+
+# pyenv
+.python-version
+
+# Node (in case frontend tooling is added)
+node_modules/
+
+# Editor temporary files
+*~
+*.swp
+*.swo

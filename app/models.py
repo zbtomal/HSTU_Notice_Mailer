@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, Integer, String, Text, func
+from sqlalchemy import Column, DateTime, Integer, String, Text, func, Date
 
 from app.database import Base
 
@@ -18,6 +18,7 @@ class Notice(Base):
     notice_id = Column(String(128), unique=True, nullable=False, index=True)
     title = Column(String(500), nullable=False)
     date = Column(String(100), nullable=True)
+    notice_date_parsed = Column(Date, nullable=True, index=True)
     description = Column(Text, nullable=True)
     notice_link = Column(String(1000), nullable=False)
     download_link = Column(String(1000), nullable=True)

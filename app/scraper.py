@@ -135,7 +135,8 @@ def scrape_latest_notices() -> list[NoticeScraped]:
             continue
 
         notice_link = urljoin(NOTICE_URL, href)
-        date = _extract_date(container)
+        date_str = _extract_date(container)
+        date_parsed = _parse_date_safe(date_str)
 
         # 3. Build Description
         container_text = _safe_text(container)
@@ -143,7 +144,7 @@ def scrape_latest_notices() -> list[NoticeScraped]:
         if title in description:
             description = description.replace(title, "", 1).strip(" -:\n\t")
 
-        notice_id = _extract_notice_id(notice_link, title, date)
+        notice_id = _extract_notice_id(notice_link, title, date_str)
         if notice_id in seen_notice_ids:
             continue
 
@@ -152,7 +153,8 @@ def scrape_latest_notices() -> list[NoticeScraped]:
             NoticeScraped(
                 notice_id=notice_id,
                 title=title,
-                date=date,
+                date=date_str,
+                notice_date_parsed=date_parsed.date() if date_parsed != datetime.min else None,
                 description=description[:1200] if description else None,
                 notice_link=notice_link,
                 download_link=_extract_download_link(container, notice_link),

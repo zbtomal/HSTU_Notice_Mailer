@@ -70,8 +70,12 @@ def scrape_latest_notices() -> list[NoticeScraped]:
     }
 
     try:
-        response = requests.get(NOTICE_URL, headers=headers, timeout=20)
-        response.raise_for_status()
+        with requests.Session() as session:
+            # Some hosts inject HTTP(S)_PROXY env vars that break access to hstu.ac.bd.
+            # Disable env proxies for this request so scraping remains reliable.
+            session.trust_env = False
+            response = session.get(NOTICE_URL, headers=headers, timeout=20)
+            response.raise_for_status()
     except requests.RequestException as exc:
         logger.exception("Failed to fetch notice page: %s", exc)
         return []

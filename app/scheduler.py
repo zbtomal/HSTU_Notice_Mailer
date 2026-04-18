@@ -37,6 +37,7 @@ async def run_scrape_job() -> None:
                 notice_id=scraped.notice_id,
                 title=scraped.title,
                 date=scraped.date,
+                notice_date_parsed=scraped.notice_date_parsed,
                 description=scraped.description,
                 notice_link=scraped.notice_link,
                 download_link=scraped.download_link,

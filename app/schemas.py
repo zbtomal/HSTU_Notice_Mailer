@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date as date_type, datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -21,6 +21,7 @@ class NoticeRead(BaseModel):
     notice_id: str
     title: str
     date: Optional[str] = None
+    notice_date_parsed: Optional[date_type] = None
     description: Optional[str] = None
     notice_link: str
     download_link: Optional[str] = None
@@ -33,6 +34,7 @@ class NoticeScraped(BaseModel):
     notice_id: str = Field(min_length=1)
     title: str = Field(min_length=1)
     date: Optional[str] = None
+    notice_date_parsed: Optional[date_type] = None
     description: Optional[str] = None
     notice_link: str = Field(min_length=1)
     download_link: Optional[str] = None

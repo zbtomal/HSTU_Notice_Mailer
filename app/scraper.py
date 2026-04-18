@@ -1,11 +1,13 @@
 import hashlib
 import logging
 import re
+from datetime import datetime
 from typing import Iterable
 from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup, Tag
+from dateutil import parser as date_parser
 
 from app.schemas import NoticeScraped
 
@@ -45,6 +47,17 @@ def _extract_date(container: Tag) -> str | None:
     # Fallback to searching the entire container text
     match = DATE_PATTERN.search(_safe_text(container))
     return match.group(1) if match else None
+
+
+def _parse_date_safe(date_str: str | None) -> datetime:
+    """Helper to convert date string to datetime for sorting."""
+    if not date_str:
+        return datetime.min
+    try:
+        # Use dateutil parser as it's very flexible with formats like "16 Apr 2026"
+        return date_parser.parse(date_str)
+    except Exception:
+        return datetime.min
 
 
 def _extract_download_link(container: Tag, notice_link: str) -> str | None:
@@ -148,6 +161,10 @@ def scrape_latest_notices() -> list[NoticeScraped]:
 
     if not notices:
         logger.warning("Scraper did not find any notice entries.")
+        return []
 
-    logger.info("Scraper found %d notice candidates.", len(notices))
+    # Sort notices by date descending (latest first)
+    notices.sort(key=lambda x: _parse_date_safe(x.date), reverse=True)
+
+    logger.info("Scraper found and sorted %d notice candidates.", len(notices))
     return notices

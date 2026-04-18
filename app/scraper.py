@@ -33,15 +33,21 @@ def _safe_text(tag: Tag | None) -> str:
     return " ".join(tag.get_text(" ", strip=True).split())
 
 
-def _extract_date(text: str) -> str | None:
-    match = DATE_PATTERN.search(text)
+def _extract_date(container: Tag) -> str | None:
+    # Try to find specific date tags first
+    date_tag = container.select_one(".date, .date-wrapper, .time")
+    if date_tag:
+        text = _safe_text(date_tag)
+        match = DATE_PATTERN.search(text)
+        if match:
+            return match.group(1)
+
+    # Fallback to searching the entire container text
+    match = DATE_PATTERN.search(_safe_text(container))
     return match.group(1) if match else None
 
 
-def _extract_download_link(container: Tag | None, notice_link: str) -> str | None:
-    if not container:
-        return None
-
+def _extract_download_link(container: Tag, notice_link: str) -> str | None:
     keywords = ("download", "pdf", "attachment", "file")
     for link in container.select("a[href]"):
         href = link.get("href", "").strip()
@@ -85,25 +91,41 @@ def scrape_latest_notices() -> list[NoticeScraped]:
     seen_notice_ids: set[str] = set()
 
     for container in _row_candidates(soup):
-        anchor = container.select_one("a[href]")
+        # 1. Extract Title: Look for specialized tags first, then any header
+        title_tag = container.select_one(".note, .title, h5, h4, h3")
+        title = _safe_text(title_tag)
+
+        # 2. Extract Link: Look for the most relevant anchor
+        # If title_tag has an anchor, use it. Otherwise find first anchor.
+        anchor = (title_tag.select_one("a[href]") if title_tag else None) or container.select_one("a[href]")
         if not anchor:
             continue
 
         href = anchor.get("href", "").strip()
-        if not href:
+        if not href or href.startswith("#"):
             continue
 
-        notice_link = urljoin(NOTICE_URL, href)
-        if "notice" not in notice_link.lower():
-            continue
+        # If we didn't find a good title from tags, try the anchor text
+        if not title:
+            title = _safe_text(anchor)
 
-        title = _safe_text(anchor)
+        if not title or title.lower() == "download":
+            # If title is still generic, try to find other text in the container
+            container_text = _safe_text(container)
+            if container_text:
+                # Remove common words
+                temp_text = container_text.lower().replace("download", "").strip()
+                if temp_text:
+                    title = container_text[:200] # Fallback to snippet
+
         if not title:
             continue
 
-        container_text = _safe_text(container)
-        date = _extract_date(container_text)
+        notice_link = urljoin(NOTICE_URL, href)
+        date = _extract_date(container)
 
+        # 3. Build Description
+        container_text = _safe_text(container)
         description = container_text
         if title in description:
             description = description.replace(title, "", 1).strip(" -:\n\t")

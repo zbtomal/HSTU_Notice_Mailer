@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HSTU Notice Mailer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: "#dbe7ff",
+            panel: "#0f172a",
+            accent: "#14b8a6",
+            ember: "#f59e0b"
+          },
+          boxShadow: {
+            glow: "0 0 0 1px rgba(20, 184, 166, 0.2), 0 10px 30px rgba(2, 6, 23, 0.65)"
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full text-ink bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+  <main class="mx-auto max-w-4xl px-4 py-10 sm:py-14">
+    <section class="mb-10 rounded-2xl border border-teal-400/20 bg-panel/80 p-6 shadow-glow backdrop-blur">
+      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">HSTU Notice Mailer</h1>
+      <p class="mt-2 text-sm text-slate-300">Get notified instantly when a new HSTU notice appears.</p>
+
+      <form id="subscribeForm" class="mt-6 flex flex-col gap-3 sm:flex-row">
+        <input
+          id="email"
+          type="email"
+          placeholder="Enter your email"
+          required
+          class="w-full rounded-lg border border-slate-700 bg-slate-900 px-4 py-3 text-sm outline-none ring-teal-400 transition focus:ring"
+        />
+        <button
+          type="submit"
+          class="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-slate-950 transition hover:brightness-110"
+        >
+          Subscribe
+        </button>
+      </form>
+
+      <p id="message" class="mt-3 text-sm"></p>
+    </section>
+
+    <section class="rounded-2xl border border-amber-300/20 bg-panel/70 p-6 shadow-glow backdrop-blur">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h2 class="text-xl font-semibold">Latest Notices</h2>
+        <button id="refreshBtn" class="rounded-md border border-slate-700 px-3 py-1.5 text-sm hover:border-accent/70">Refresh</button>
+      </div>
+      <ul id="noticeList" class="space-y-3"></ul>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById("subscribeForm");
+    const emailInput = document.getElementById("email");
+    const message = document.getElementById("message");
+    const noticeList = document.getElementById("noticeList");
+    const refreshBtn = document.getElementById("refreshBtn");
+
+    function showMessage(text, isError = false) {
+      message.textContent = text;
+      message.className = isError ? "mt-3 text-sm text-red-400" : "mt-3 text-sm text-emerald-400";
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    async function fetchNotices() {
+      noticeList.innerHTML = "<li class='text-slate-400'>Loading notices...</li>";
+      try {
+        const res = await fetch("/notices?limit=20");
+        if (!res.ok) throw new Error("Failed to load notices");
+
+        const notices = await res.json();
+        if (!notices.length) {
+          noticeList.innerHTML = "<li class='text-slate-400'>No notices found yet.</li>";
+          return;
+        }
+
+        noticeList.innerHTML = notices.map((notice) => {
+          const title = escapeHtml(notice.title || "Untitled");
+          const date = escapeHtml(notice.date || "Date not available");
+          const description = escapeHtml((notice.description || "").slice(0, 260));
+          const link = notice.notice_link || "#";
+
+          return `
+            <li class="rounded-xl border border-slate-700/80 bg-slate-900/80 p-4">
+              <a href="${link}" target="_blank" rel="noopener noreferrer" class="font-semibold text-amber-300 hover:underline">${title}</a>
+              <p class="mt-1 text-xs text-slate-400">${date}</p>
+              <p class="mt-2 text-sm text-slate-300">${description || "No description available."}</p>
+            </li>
+          `;
+        }).join("");
+      } catch (err) {
+        noticeList.innerHTML = "<li class='text-red-400'>Could not load notices.</li>";
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = emailInput.value.trim();
+      if (!email) {
+        showMessage("Please enter a valid email.", true);
+        return;
+      }
+
+      try {
+        const res = await fetch("/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+
+        const payload = await res.json();
+        if (!res.ok) {
+          showMessage(payload.detail || "Subscription failed.", true);
+          return;
+        }
+
+        emailInput.value = "";
+        showMessage("Subscribed successfully. You will receive new notice alerts.");
+      } catch (err) {
+        showMessage("Network error while subscribing.", true);
+      }
+    });
+
+    refreshBtn.addEventListener("click", fetchNotices);
+    fetchNotices();
+  </script>
+</body>
+</html>

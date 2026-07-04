@@ -40,3 +40,18 @@ async def send_notice_email(to_email: str, notice_title: str, notice_link: str) 
     </html>
     """
     return await send_email(to_email, subject, html_content)
+
+async def send_verification_otp(to_email: str, otp: str) -> bool:
+    # Sends verification OTP email to a user.
+    subject = "Verify Your Email - HSTU Notice Mailer"
+    html_content = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2>Email Verification</h2>
+            <p>Thank you for registering. Please use the following One-Time Password (OTP) to verify your email address:</p>
+            <h1 style="background-color: #f2f2f2; padding: 10px; display: inline-block; letter-spacing: 5px; border-radius: 5px;">{otp}</h1>
+            <p>This OTP will expire in 10 minutes.</p>
+        </body>
+    </html>
+    """
+    return await send_email(to_email, subject, html_content)

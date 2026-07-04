@@ -5,6 +5,7 @@ import logging
 
 from app.routers.auth import router as auth_router
 from app.routers.scraper import router as scraper_router
+from app.routers.users import router as users_router
 
 app = FastAPI(
     title="HSTU Notice Mailer",
@@ -30,6 +31,7 @@ logger = logging.getLogger("hstu_notice_mailer")
 
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(scraper_router, prefix="/api/v1")
+app.include_router(users_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

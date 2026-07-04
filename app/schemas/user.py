@@ -24,3 +24,8 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: str | None = None
+
+class UserVerify(BaseModel):
+    email: EmailStr
+    otp: str
+

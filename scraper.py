@@ -169,21 +169,53 @@ def main():
         
     api_url = f"{api_base_url.rstrip('/')}/api/v1/scraper/webhook"
     
+    # Read last notice ID from cache file if it exists
+    last_notice_id = None
+    cache_file = "last_notice_id.txt"
+    if os.path.exists(cache_file):
+        with open(cache_file, "r") as f:
+            last_notice_id = f.read().strip()
+            
     notices = scrape_latest_notices()
     if not notices:
         logger.info("No notices scraped. Exiting.")
         return
         
-    logger.info("Sending %d notices to webhook at %s...", len(notices), api_url)
+    new_notices = []
+    if last_notice_id:
+        # Find which notices are new (those before the last_notice_id in the list)
+        for notice in notices:
+            if notice["notice_id"] == last_notice_id:
+                break
+            new_notices.append(notice)
+            
+        if not new_notices:
+            logger.info("No new notices found since last run. API call skipped.")
+            return
+    else:
+        # First run: process all scraped notices
+        logger.info("First run detected. Processing all scraped notices.")
+        new_notices = notices
+
+    # The newest notice will be the first one in the new_notices list (since they are sorted newest first)
+    new_latest_id = new_notices[0]["notice_id"]
+    
+    logger.info("Sending %d new notices to webhook at %s...", len(new_notices), api_url)
     try:
         headers = {}
         scraper_token = os.getenv("SCRAPER_API_KEY")
         if scraper_token:
             headers["Authorization"] = f"Bearer {scraper_token}"
             
-        response = requests.post(api_url, json=notices, headers=headers, timeout=30)
+        # Send new_notices to webhook. Timeout is set to 120s to allow Render & Neon cold starts
+        response = requests.post(api_url, json=new_notices, headers=headers, timeout=120)
         response.raise_for_status()
         logger.info("Webhook success response: %s", response.json())
+        
+        # Save the new latest notice ID to cache file
+        with open(cache_file, "w") as f:
+            f.write(new_latest_id)
+            
     except requests.RequestException as e:
         logger.error("Failed to send notices to webhook: %s", e)
         exit(1)

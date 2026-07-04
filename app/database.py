@@ -1,35 +1,28 @@
-import os
-from contextlib import contextmanager
+from collections.abc import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
 
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from app.core.config import settings
 
-load_dotenv()
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo = False,
+    pool_pre_ping = True
+)
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:postgres@localhost:5432/hstu_notice_mailer")
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
-elif "://" in DATABASE_URL and "+psycopg2" not in DATABASE_URL and "postgresql" in DATABASE_URL:
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+AsyncSessionLocal = async_sessionmaker(
+    bind = engine,
+    autocommit = False,
+    autoflush = False,
+    expire_on_commit = False,
+)
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@contextmanager
-def db_context():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()

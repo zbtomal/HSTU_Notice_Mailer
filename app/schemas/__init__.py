@@ -1,6 +1,6 @@
 from app.schemas.category import CategoryCreate, CategoryRead
 from app.schemas.notice import NoticeCreate, NoticeRead
-from app.schemas.user import UserCreate, UserRead, Token, TokenData, UserVerify
+from app.schemas.user import UserCreate, UserRead, Token, TokenData, UserVerify, UserResendOTP, UserLogin
 
 __all__ = [
     "CategoryCreate",
@@ -12,4 +12,6 @@ __all__ = [
     "Token",
     "TokenData",
     "UserVerify",
+    "UserResendOTP",
+    "UserLogin",
 ]

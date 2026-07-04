@@ -1,18 +1,17 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 
-from app.schemas.user import Token
+from app.schemas.user import Token, UserLogin
 from app.services.user_service import authenticate_user
 from app.core.security import create_access_token
 
-async def login_user(db: AsyncSession, form_data: OAuth2PasswordRequestForm) -> Token:
+async def login_user(db: AsyncSession, login_data: UserLogin) -> Token:
     """
-    Validates user credentials and generates a JWT token.
+    Validates user credentials (JSON) and generates a JWT token.
     Raises HTTPException if validation fails.
     """
     user = await authenticate_user(
-        db, email=form_data.username, password=form_data.password
+        db, email=login_data.email, password=login_data.password
     )
     
     if not user:

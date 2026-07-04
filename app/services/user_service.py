@@ -45,7 +45,14 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
         logger = logging.getLogger("user_service")
         logger.error(f"Failed to send verification OTP to {db_user.email}")
         
-    return db_user
+    # Reload user with subscriptions loaded before returning to avoid MissingGreenlet serializer error
+    from sqlalchemy.orm import selectinload
+    refreshed_user = await db.scalar(
+        select(User)
+        .options(selectinload(User.subscriptions))
+        .where(User.id == db_user.id)
+    )
+    return refreshed_user
 
 async def authenticate_user(
     db: AsyncSession, email: str, password: str
@@ -81,6 +88,7 @@ async def subscribe_user_to_category(
         )
         await db.commit()
         
+    user_id = user.id
     # Expire user cache so SQLAlchemy reloads relationship on query
     db.expire(user)
         
@@ -88,7 +96,7 @@ async def subscribe_user_to_category(
     refreshed_user = await db.scalar(
         select(User)
         .options(selectinload(User.subscriptions))
-        .where(User.id == user.id)
+        .where(User.id == user_id)
     )
     return refreshed_user
 
@@ -112,6 +120,7 @@ async def unsubscribe_user_from_category(
     )
     await db.commit()
     
+    user_id = user.id
     # Expire user cache so SQLAlchemy reloads relationship on query
     db.expire(user)
     
@@ -119,7 +128,7 @@ async def unsubscribe_user_from_category(
     refreshed_user = await db.scalar(
         select(User)
         .options(selectinload(User.subscriptions))
-        .where(User.id == user.id)
+        .where(User.id == user_id)
     )
     return refreshed_user
 
@@ -155,4 +164,34 @@ async def verify_user_email(db: AsyncSession, email: str, otp: str) -> bool:
     user.otp_expires_at = None
     
     await db.commit()
+    return True
+
+async def resend_verification_otp(db: AsyncSession, email: str) -> bool:
+    """
+    Generates a new verification OTP and sends it to the user.
+    """
+    user = await get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    if user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already verified",
+        )
+        
+    otp = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    user.verification_otp = otp
+    user.otp_expires_at = expires_at
+    await db.commit()
+    
+    email_sent = await send_verification_otp(user.email, otp)
+    if not email_sent:
+        logger = logging.getLogger("user_service")
+        logger.error(f"Failed to send verification OTP to {user.email}")
+        
     return True

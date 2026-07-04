@@ -34,12 +34,8 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) ->
     categories_result = await db.execute(select(Category))
     categories_map = {c.name: c for c in categories_result.scalars().all()}
     
-    # Calculate how many notices are actually new
-    new_notices_list = [item for item in notices_data if item.get("notice_id") not in existing_ids]
-    
-    # Safety Check: If there are more than 5 new notices in a single request,
-    # it is likely a sync or database seed. Disable email sending to prevent email spam/limit blocks.
-    should_send_emails = not is_first_run and len(new_notices_list) <= 5
+    # Safety Check: If Notice table is empty (first run), we skip email sending to avoid SMTP limits.
+    should_send_emails = not is_first_run
     
     # Process in reverse order (oldest first) so that DB IDs are sequential chronologically
     for item in reversed(notices_data):

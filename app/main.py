@@ -1,51 +1,48 @@
-import asyncio
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import logging
-from contextlib import asynccontextmanager
-from pathlib import Path
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from app.routers.auth import router as auth_router
+from app.routers.scraper import router as scraper_router
 
-from app.database import Base, engine
-from app.routers.notices import router as notices_router
-from app.routers.users import router as users_router
-from app.scheduler import create_scheduler, run_scrape_job
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+app = FastAPI(
+    title="HSTU Notice Mailer",
+    description="Backend API to scrape HSTU notices and mail them to subscribed users.",
+    version="1.0.0"
 )
 
-FRONTEND_FILE = Path(__file__).resolve().parent.parent / "frontend" / "index.html"
+# Enable CORS for frontend integration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup logic: Create tables and start scheduler
-    Base.metadata.create_all(bind=engine)
+# Logger Configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("hstu_notice_mailer")
 
-    scheduler = create_scheduler()
-    scheduler.start()
-    app.state.scheduler = scheduler
-
-    # Run one scrape on startup in the background
-    asyncio.create_task(run_scrape_job())
-
-    yield
-    
-    # Shutdown logic
-    scheduler = getattr(app.state, "scheduler", None)
-    if scheduler:
-        scheduler.shutdown(wait=False)
-
-app = FastAPI(title="HSTU Notice Mailer", version="1.0.0", lifespan=lifespan)
-
-app.include_router(users_router)
-app.include_router(notices_router)
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(scraper_router, prefix="/api/v1")
 
 @app.get("/")
-def root() -> FileResponse:
-    return FileResponse(FRONTEND_FILE)
+def read_root():
+    return {"message": "Welcome to HSTU Notice Mailer API!"}
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health_check():
+    return {"status": "Healthy"}
+
+@app.exception_handler(Exception)
+async def global_exception_handler(req: Request, exc: Exception):
+    logger.error(f"An unexpected error occurred: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "An unexpected error occurred. Please try again later."}
+    )

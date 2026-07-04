@@ -34,3 +34,9 @@ class Category(Base):
         back_populates="category", 
         cascade="all, delete-orphan"
     )
+
+    subscribers: Mapped[list["User"]] = relationship(
+        "User",
+        secondary="user_subscriptions",
+        back_populates="subscriptions"
+    )

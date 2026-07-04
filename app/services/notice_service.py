@@ -22,7 +22,8 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) ->
     # Processes the scraped notices payload. Saves new notices and triggers emails to subscribers.
     new_notices_count = 0
     
-    for item in notices_data:
+    # Process in reverse order (oldest first) so that DB IDs are sequential chronologically
+    for item in reversed(notices_data):
         # Get or create category
         category_name = item.get("category", "General")
         category = await get_or_create_category(db, category_name)
@@ -53,7 +54,10 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) ->
             users_result = await db.execute(
                 select(User.email)
                 .join(user_subscriptions)
-                .where(user_subscriptions.c.category_id == category.id)
+                .where(
+                    user_subscriptions.c.category_id == category.id,
+                    User.is_active == True
+                )
             )
             subscribers = users_result.scalars().all()
             

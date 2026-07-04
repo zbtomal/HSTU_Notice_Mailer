@@ -29,3 +29,12 @@ class UserVerify(BaseModel):
     email: EmailStr
     otp: str
 
+class UserResendOTP(BaseModel):
+    email: EmailStr
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+

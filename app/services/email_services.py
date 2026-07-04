@@ -12,14 +12,19 @@ async def send_email(to_email: str, subject: str, html_content: str) -> bool:
         msg.set_content("Please enable HTML to view this email.")
         msg.add_alternative(html_content, subtype='html')
 
+        # Determine TLS / STARTTLS automatically based on port
+        # Port 465 is direct TLS, Port 587/25 is STARTTLS
+        use_direct_tls = settings.SMTP_PORT == 465
+        use_start_tls = settings.SMTP_PORT in (587, 25) or settings.SMTP_USE_TLS
+
         await aiosmtplib.send(
             msg,
             hostname=settings.SMTP_HOST,
             port=settings.SMTP_PORT,
             username=settings.SMTP_USER,
             password=settings.SMTP_PASSWORD,
-            use_tls=settings.SMTP_USE_TLS,
-            start_tls=False if settings.SMTP_USE_TLS else True
+            use_tls=use_direct_tls,
+            start_tls=use_start_tls
         )
         return True
     except Exception as e:

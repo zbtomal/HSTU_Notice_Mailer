@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.models.notice import Notice
 from app.models.category import Category
 from app.models.user import User, user_subscriptions
@@ -22,34 +22,66 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) ->
     # Processes the scraped notices payload. Saves new notices and triggers emails to subscribers.
     new_notices_count = 0
     
+    # 1. Check if Notice table is empty (first run). If so, we skip email sending to avoid SMTP limits.
+    count_result = await db.execute(select(func.count(Notice.id)))
+    is_first_run = count_result.scalar() == 0
+    
+    # 2. Fetch all existing notice IDs to prevent N+1 select queries
+    existing_notices_result = await db.execute(select(Notice.notice_id))
+    existing_ids = set(existing_notices_result.scalars().all())
+    
+    # 3. Fetch all categories to cache them
+    categories_result = await db.execute(select(Category))
+    categories_map = {c.name: c for c in categories_result.scalars().all()}
+    
+    # Calculate how many notices are actually new
+    new_notices_list = [item for item in notices_data if item.get("notice_id") not in existing_ids]
+    
+    # Safety Check: If there are more than 5 new notices in a single request,
+    # it is likely a sync or database seed. Disable email sending to prevent email spam/limit blocks.
+    should_send_emails = not is_first_run and len(new_notices_list) <= 5
+    
     # Process in reverse order (oldest first) so that DB IDs are sequential chronologically
     for item in reversed(notices_data):
-        # Get or create category
-        category_name = item.get("category", "General")
-        category = await get_or_create_category(db, category_name)
-        
-        # Check if the notice already exists in database
         notice_id = item.get("notice_id")
-        result = await db.execute(select(Notice).where(Notice.notice_id == notice_id))
-        existing_notice = result.scalar_one_or_none()
-        
-        if not existing_notice:
-            # Create and save new notice
-            db_notice = Notice(
-                notice_id=notice_id,
-                title=item.get("title"),
-                date_str=item.get("date_str"),
-                notice_date_parsed=item.get("notice_date_parsed"),
-                description=item.get("description"),
-                notice_link=item.get("notice_link"),
-                download_link=item.get("download_link"),
-                category_id=category.id
-            )
-            db.add(db_notice)
-            await db.commit()
-            await db.refresh(db_notice)
-            new_notices_count += 1
+        if notice_id in existing_ids:
+            continue
             
+        category_name = item.get("category", "General")
+        
+        # Get category from cache or database
+        if category_name not in categories_map:
+            category = await get_or_create_category(db, category_name)
+            categories_map[category_name] = category
+        else:
+            category = categories_map[category_name]
+            
+        # Parse ISO date string to datetime.date object for DB driver compatibility
+        parsed_date = None
+        parsed_date_str = item.get("notice_date_parsed")
+        if parsed_date_str:
+            from datetime import date
+            try:
+                parsed_date = date.fromisoformat(parsed_date_str)
+            except ValueError:
+                pass
+                
+        # Create notice object and add to session (with field truncation to prevent DB overflow)
+        db_notice = Notice(
+            notice_id=notice_id[:128],
+            title=item.get("title", "")[:500],
+            date_str=item.get("date_str")[:100] if item.get("date_str") else None,
+            notice_date_parsed=parsed_date,
+            description=item.get("description"),
+            notice_link=item.get("notice_link", "")[:1000],
+            download_link=item.get("download_link")[:1000] if item.get("download_link") else None,
+            category_id=category.id
+        )
+        db.add(db_notice)
+        new_notices_count += 1
+        
+        # 4. Trigger emails to subscribers only if safety checks allow
+        if should_send_emails:
             # Fetch all users subscribed to this category
             users_result = await db.execute(
                 select(User.email)
@@ -68,5 +100,9 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) ->
                     notice_title=db_notice.title,
                     notice_link=db_notice.notice_link
                 )
+                
+    # Commit all new notices in a single transaction
+    if new_notices_count > 0:
+        await db.commit()
                 
     return {"status": "success", "new_notices_added": new_notices_count}

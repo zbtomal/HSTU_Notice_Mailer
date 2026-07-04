@@ -5,7 +5,7 @@ from typing import Any
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead, Token, UserVerify
+from app.schemas.user import UserCreate, UserRead, Token, UserVerify, UserResendOTP, UserLogin
 from app.services import user_service, auth_service
 from app.dependencies import get_current_active_user
 
@@ -24,11 +24,11 @@ async def register(
 
 @router.post("/login", response_model=Token)
 async def login(
-    db: AsyncSession = Depends(get_db),
-    form_data: OAuth2PasswordRequestForm = Depends()
+    login_data: UserLogin,
+    db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # OAuth2 compatible token login, get an access token for future requests.
-    return await auth_service.login_user(db, form_data)
+    # Standard JSON login, returns access token.
+    return await auth_service.login_user(db, login_data)
 
 @router.get("/me", response_model=UserRead)
 async def read_current_user(
@@ -45,3 +45,22 @@ async def verify_email(
     # Verify a registered user's email using the OTP.
     await user_service.verify_user_email(db, email=verify_data.email, otp=verify_data.otp)
     return {"message": "Email verified successfully"}
+
+@router.post("/resend-otp", status_code=status.HTTP_200_OK)
+async def resend_otp(
+    resend_data: UserResendOTP,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    # Resend the verification OTP to the user.
+    await user_service.resend_verification_otp(db, email=resend_data.email)
+    return {"message": "Verification code resent successfully"}
+
+@router.post("/token", response_model=Token)
+async def login_for_swagger(
+    db: AsyncSession = Depends(get_db),
+    form_data: OAuth2PasswordRequestForm = Depends()
+) -> Any:
+    # OAuth2 compatible token login, for Swagger UI 'Authorize' button.
+    # It converts form-data to UserLogin to reuse service logic.
+    login_data = UserLogin(email=form_data.username, password=form_data.password)
+    return await auth_service.login_user(db, login_data)

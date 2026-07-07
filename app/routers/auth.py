@@ -14,7 +14,8 @@ from app.schemas import (
     UserLogin,
     UserCreateResponse,
     ForgotPasswordRequest,
-    ResetPasswordRequest
+    ResetPasswordRequest,
+    ChangePasswordRequest
 )
 from app.services import user_service, auth_service
 from app.dependencies import get_current_active_user
@@ -97,3 +98,18 @@ async def login_for_swagger(
     # It converts form-data to UserLogin to reuse service logic.
     login_data = UserLogin(email=form_data.username, password=form_data.password)
     return await auth_service.login_user(db, login_data)
+
+@router.post("/change-password", status_code=status.HTTP_200_OK)
+async def change_password(
+    request: ChangePasswordRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    # Change the password of a logged-in user.
+    await user_service.change_user_password(
+        db,
+        user=current_user,
+        old_password=request.old_password,
+        new_password=request.new_password
+    )
+    return {"message": "Password changed successfully"}

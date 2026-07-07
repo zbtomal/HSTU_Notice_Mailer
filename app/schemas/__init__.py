@@ -9,7 +9,8 @@ from app.schemas.auth import (
     UserLogin,
     UserCreateResponse,
     ForgotPasswordRequest,
-    ResetPasswordRequest
+    ResetPasswordRequest,
+    ChangePasswordRequest
 )
 
 __all__ = [
@@ -27,4 +28,5 @@ __all__ = [
     "UserCreateResponse",
     "ForgotPasswordRequest",
     "ResetPasswordRequest",
+    "ChangePasswordRequest",
 ]

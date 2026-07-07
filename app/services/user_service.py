@@ -258,3 +258,16 @@ async def reset_password(db: AsyncSession, email: str, otp: str, new_password: s
     
     await db.commit()
     return True
+
+async def change_user_password(db: AsyncSession, user: User, old_password: str, new_password: str) -> bool:
+    """
+    Changes a user's password after verifying their old password.
+    """
+    if not verify_password(old_password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect old password",
+        )
+    user.hashed_password = get_password_hash(new_password)
+    await db.commit()
+    return True

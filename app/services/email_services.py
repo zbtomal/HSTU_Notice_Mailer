@@ -60,3 +60,18 @@ async def send_verification_otp(to_email: str, otp: str) -> bool:
     </html>
     """
     return await send_email(to_email, subject, html_content)
+
+async def send_reset_password_otp(to_email: str, otp: str) -> bool:
+    # Sends password reset OTP email to a user.
+    subject = "Reset Your Password - HSTU Notice Mailer"
+    html_content = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <h2>Password Reset Request</h2>
+            <p>We received a request to reset your password. Please use the following One-Time Password (OTP) to reset your password:</p>
+            <h1 style="background-color: #f2f2f2; padding: 10px; display: inline-block; letter-spacing: 5px; border-radius: 5px; color: #d9534f;">{otp}</h1>
+            <p>This OTP will expire in 10 minutes. If you did not make this request, you can safely ignore this email.</p>
+        </body>
+    </html>
+    """
+    return await send_email(to_email, subject, html_content)

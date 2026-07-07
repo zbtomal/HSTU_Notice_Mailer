@@ -17,24 +17,5 @@ class UserRead(UserBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-# Auth related schemas
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    email: str | None = None
-
-class UserVerify(BaseModel):
-    email: EmailStr
-    otp: str
-
-class UserResendOTP(BaseModel):
-    email: EmailStr
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
 
 

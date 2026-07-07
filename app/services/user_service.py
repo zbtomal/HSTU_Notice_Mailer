@@ -195,3 +195,66 @@ async def resend_verification_otp(db: AsyncSession, email: str) -> bool:
         logger.error(f"Failed to send verification OTP to {user.email}")
         
     return True
+
+async def request_password_reset(db: AsyncSession, email: str) -> bool:
+    """
+    Generates a password reset OTP and sends it via email.
+    """
+    user = await get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User email is not verified. Please verify your email first.",
+        )
+        
+    otp = f"{random.randint(100000, 999999)}"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+    
+    user.reset_password_otp = otp
+    user.reset_otp_expires_at = expires_at
+    await db.commit()
+    
+    from app.services.email_services import send_reset_password_otp
+    email_sent = await send_reset_password_otp(user.email, otp)
+    if not email_sent:
+        logger = logging.getLogger("user_service")
+        logger.error(f"Failed to send password reset OTP to {user.email}")
+        
+    return True
+
+async def reset_password(db: AsyncSession, email: str, otp: str, new_password: str) -> bool:
+    """
+    Verifies the reset OTP and resets the user's password.
+    """
+    user = await get_user_by_email(db, email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    if not user.reset_password_otp or user.reset_password_otp != otp:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid reset code",
+        )
+        
+    # Check expiry
+    now = datetime.now(timezone.utc)
+    if user.reset_otp_expires_at < now:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reset code expired",
+        )
+        
+    # Hash new password and clear OTP columns
+    user.hashed_password = get_password_hash(new_password)
+    user.reset_password_otp = None
+    user.reset_otp_expires_at = None
+    
+    await db.commit()
+    return True

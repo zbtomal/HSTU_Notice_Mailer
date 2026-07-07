@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import settings
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import TokenData
+from app.schemas import TokenData
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")

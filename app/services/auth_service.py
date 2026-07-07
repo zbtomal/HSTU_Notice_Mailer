@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
-from app.schemas.user import Token, UserLogin
+from app.schemas import Token, UserLogin
 from app.services.user_service import authenticate_user
 from app.core.security import create_access_token
 

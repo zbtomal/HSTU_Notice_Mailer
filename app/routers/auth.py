@@ -5,7 +5,17 @@ from typing import Any
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserRead, Token, UserVerify, UserResendOTP, UserLogin
+from app.schemas import (
+    UserCreate,
+    UserRead,
+    Token,
+    UserVerify,
+    UserResendOTP,
+    UserLogin,
+    UserCreateResponse,
+    ForgotPasswordRequest,
+    ResetPasswordRequest
+)
 from app.services import user_service, auth_service
 from app.dependencies import get_current_active_user
 
@@ -14,7 +24,7 @@ router = APIRouter(
     tags=["Authentication"]
 )
 
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserCreateResponse, status_code=status.HTTP_201_CREATED)
 async def register(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db)
@@ -54,6 +64,29 @@ async def resend_otp(
     # Resend the verification OTP to the user.
     await user_service.resend_verification_otp(db, email=resend_data.email)
     return {"message": "Verification code resent successfully"}
+
+@router.post("/forgot-password", status_code=status.HTTP_200_OK)
+async def forgot_password(
+    request: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    # Initiate forgot password flow, sends a reset OTP via email.
+    await user_service.request_password_reset(db, email=request.email)
+    return {"message": "Password reset verification code sent to your email"}
+
+@router.post("/reset-password", status_code=status.HTTP_200_OK)
+async def reset_password(
+    request: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    # Reset password using the reset OTP.
+    await user_service.reset_password(
+        db, 
+        email=request.email, 
+        otp=request.otp, 
+        new_password=request.new_password
+    )
+    return {"message": "Password reset successfully. You can now login with your new password."}
 
 @router.post("/token", response_model=Token)
 async def login_for_swagger(

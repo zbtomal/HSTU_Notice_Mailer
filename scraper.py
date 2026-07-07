@@ -132,15 +132,13 @@ def scrape_latest_notices() -> list[dict]:
 
         seen_notice_ids.add(notice_id)
         
-        # Determine category from title keywords
+        # Determine category from the page markup (icon class fa-building)
         category = "General"
-        title_lower = title.lower()
-        if "cse" in title_lower or "computer" in title_lower:
-            category = "CSE"
-        elif "admission" in title_lower:
-            category = "Admission"
-        elif "exam" in title_lower or "routine" in title_lower:
-            category = "Exam"
+        category_icon = container.find("i", class_="fa-building")
+        if category_icon and category_icon.parent:
+            extracted_category = _safe_text(category_icon.parent).strip()
+            if extracted_category:
+                category = extracted_category
             
         notices.append({
             "notice_id": notice_id,

@@ -41,8 +41,7 @@ async def unsubscribe_from_category(
 
 @router.get("/categories", response_model=List[CategoryRead])
 async def list_categories(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    db: AsyncSession = Depends(get_db)
 ) -> Any:
     """
     List all available notice categories.

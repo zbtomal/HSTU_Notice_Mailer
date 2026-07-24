@@ -1,0 +1,99 @@
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authApi } from '../api/client';
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [token, setToken] = useState(() => localStorage.getItem('access_token'));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState(null);
+
+  // Helper to trigger toast messages
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ message, type, id: Date.now() });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast(null);
+  }, []);
+
+  // Fetch current user details when token changes or mounts
+  const fetchUser = useCallback(async (authToken) => {
+    const currentToken = authToken || token;
+    if (!currentToken) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const res = await authApi.getMe(currentToken);
+    if (res.ok) {
+      setUser(res.data);
+    } else {
+      // Invalid/expired token
+      console.warn('Token validation failed:', res.error);
+      localStorage.removeItem('access_token');
+      setToken(null);
+      setUser(null);
+    }
+    setLoading(false);
+  }, [token]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  // Login handler
+  const loginToken = async (access_token) => {
+    localStorage.setItem('access_token', access_token);
+    setToken(access_token);
+    await fetchUser(access_token);
+  };
+
+  // Logout handler
+  const logout = () => {
+    localStorage.removeItem('access_token');
+    setToken(null);
+    setUser(null);
+    showToast('Successfully logged out.', 'info');
+  };
+
+  // Refresh user data (e.g. after subscribing/unsubscribing)
+  const refreshUser = async () => {
+    if (token) {
+      const res = await authApi.getMe(token);
+      if (res.ok) {
+        setUser(res.data);
+      }
+    }
+  };
+
+  const value = {
+    token,
+    user,
+    loading,
+    isAuthenticated: !!user && user.is_active,
+    loginToken,
+    logout,
+    refreshUser,
+    toast,
+    showToast,
+    hideToast,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

@@ -205,8 +205,8 @@ def main():
         if scraper_token:
             headers["Authorization"] = f"Bearer {scraper_token}"
             
-        # Send new_notices to webhook. Timeout is set to 120s to allow Render & Neon cold starts
-        response = requests.post(api_url, json=new_notices, headers=headers, timeout=120)
+        # Send new_notices to webhook. Timeout is set to 180s to allow Render & Neon cold starts
+        response = requests.post(api_url, json=new_notices, headers=headers, timeout=180)
         response.raise_for_status()
         logger.info("Webhook success response: %s", response.json())
         

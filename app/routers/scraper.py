@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Header, HTTPException
+from fastapi import APIRouter, Depends, status, Header, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any
 
@@ -14,6 +14,7 @@ router = APIRouter(
 @router.post("/webhook", status_code=status.HTTP_200_OK)
 async def scraper_webhook(
     payload: List[Dict[str, Any]],
+    background_tasks: BackgroundTasks,
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
@@ -26,4 +27,4 @@ async def scraper_webhook(
         )
         
     # Endpoint for GitHub Actions scraper to submit newly scraped notices.
-    return await notice_service.process_scraped_notices(db, payload)
+    return await notice_service.process_scraped_notices(db, payload, background_tasks)

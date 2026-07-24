@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from fastapi import BackgroundTasks
 from app.models.notice import Notice
 from app.models.category import Category
 from app.models.user import User, user_subscriptions
@@ -18,7 +19,7 @@ async def get_or_create_category(db: AsyncSession, name: str) -> Category:
         
     return category
 
-async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) -> dict:
+async def process_scraped_notices(db: AsyncSession, notices_data: list[dict], background_tasks: BackgroundTasks = None) -> dict:
     # Processes the scraped notices payload. Saves new notices and triggers emails to subscribers.
     new_notices_count = 0
     
@@ -95,16 +96,24 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict]) ->
             users_result = await db.execute(query)
             subscribers = users_result.scalars().all()
             
-            # Send emails to all subscribers asynchronously
+            # Send emails to all subscribers asynchronously (delegated to background tasks if available)
             for email in subscribers:
-                await send_notice_email(
-                    to_email=email,
-                    notice_title=db_notice.title,
-                    notice_link=db_notice.notice_link
-                )
+                if background_tasks:
+                    background_tasks.add_task(
+                        send_notice_email,
+                        to_email=email,
+                        notice_title=db_notice.title,
+                        notice_link=db_notice.notice_link
+                    )
+                else:
+                    await send_notice_email(
+                        to_email=email,
+                        notice_title=db_notice.title,
+                        notice_link=db_notice.notice_link
+                    )
                 
     # Commit all new notices in a single transaction
     if new_notices_count > 0:
         await db.commit()
-                
+                 
     return {"status": "success", "new_notices_added": new_notices_count}

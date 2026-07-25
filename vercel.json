@@ -19,6 +19,14 @@
       "dest": "app/main.py"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/frontend/assets/$1"
+    },
+    {
+      "src": "/favicon.svg",
+      "dest": "/frontend/favicon.svg"
+    },
+    {
       "handle": "filesystem"
     },
     {

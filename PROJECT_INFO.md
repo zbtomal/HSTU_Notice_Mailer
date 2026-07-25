@@ -54,7 +54,9 @@ The project uses PostgreSQL (via **SQLAlchemy asyncpg**).
 
 ### Entities:
 1. **User (`users` table)**:
-   - Contains credentials, account activation state (`is_active` boolean), and password reset columns (`reset_password_otp`, `reset_otp_expires_at`).
+   - Contains credentials (`email`, nullable `hashed_password` to support future OAuth2), account activation state (`is_active` boolean), and password reset columns (`reset_password_otp`, `reset_otp_expires_at`).
+   - Profile metadata columns (`full_name`, `profile_picture_url`).
+   - OAuth2 integration columns (`oauth_provider` like google/facebook, `oauth_id` provider user ID).
 2. **Category (`categories` table)**:
    - Holds names of sections extracted from the page HTML (e.g., *"Science"*, *"Engineering"*, *"Computer Science and Engineering (CSE)"*, *"Office & Section"*).
 3. **Notice (`notices` table)**:

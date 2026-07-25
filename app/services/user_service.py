@@ -31,6 +31,8 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
     db_user = User(
         email=user_in.email,
         hashed_password=hashed_password,
+        full_name=user_in.full_name,
+        profile_picture_url=user_in.profile_picture_url,
         is_active=False,  # Must verify email to activate
         verification_otp=otp,
         otp_expires_at=expires_at

@@ -32,7 +32,7 @@ function AppContent() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 bg-radial-glow bg-no-repeat bg-top">
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 bg-radial-glow bg-no-repeat bg-top overflow-x-hidden w-full">
       
       {/* Toast Notification Container */}
       <Toast />
@@ -46,7 +46,7 @@ function AppContent() {
       />
 
       {/* Main Container */}
-      <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+      <main className="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-12 overflow-x-hidden">
         {activeTab === 'feed' && (
           <NoticeFeed openAuthModal={openAuthModal} />
         )}
@@ -74,22 +74,22 @@ function AppContent() {
       />
 
       {/* Footer */}
-      <footer className="mt-auto border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-md py-8">
+      <footer className="mt-auto border-t border-slate-200 dark:border-slate-800/80 bg-slate-100 dark:bg-slate-950/90 backdrop-blur-md py-6 sm:py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             
-            <div className="flex items-center gap-2 text-xs text-slate-400">
-              <span className="font-heading font-bold text-slate-200">HSTU Notice Mailer</span>
-              <span>•</span>
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-heading font-bold text-slate-900 dark:text-slate-200">HSTU Notice Mailer</span>
+              <span className="hidden sm:inline">•</span>
               <span>Hajee Mohammad Danesh Science & Technology University</span>
             </div>
 
-            <div className="flex items-center gap-4 text-xs text-slate-400">
+            <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
               <a 
                 href="https://hstu.ac.bd/page/notice_all" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="hover:text-teal-300 flex items-center gap-1 transition-colors"
+                className="hover:text-teal-600 dark:hover:text-teal-300 flex items-center gap-1 transition-colors font-medium"
               >
                 HSTU Official Notices <ExternalLink className="w-3 h-3" />
               </a>
@@ -97,7 +97,7 @@ function AppContent() {
 
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-900 text-center text-[11px] text-slate-500">
+          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-900 text-center text-[11px] text-slate-400 dark:text-slate-500">
             Powered by FastAPI Async Scraper & React Tailwind UI
           </div>
         </div>

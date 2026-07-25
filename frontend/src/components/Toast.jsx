@@ -20,7 +20,7 @@ export default function Toast() {
   const isError = toast.type === 'error';
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 animate-bounce-short max-w-md">
+    <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 animate-bounce-short max-w-md mx-auto sm:mx-0">
       <div className={`flex items-center gap-3 px-4 py-3.5 rounded-xl border backdrop-blur-xl shadow-2xl transition-all ${
         isSuccess 
           ? 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200 shadow-emerald-950/50' 

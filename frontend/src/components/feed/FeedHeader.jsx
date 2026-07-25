@@ -16,13 +16,11 @@ export default function FeedHeader() {
           <span>HSTU Official Announcement Portal</span>
         </div>
         
-        {/* Heading matching user reference image */}
         <h1 className="font-heading text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.15]">
           Stay Ahead with Instant{' '}
           <span className="text-teal-600 dark:text-teal-400 font-extrabold">Notice</span>
           <br />
-          <span className="text-teal-600 dark:text-cyan-400 font-extrabold">Aler</span>
-          <span className="text-amber-500 dark:text-amber-300 font-extrabold">ts</span>
+          <span className="text-teal-600 dark:text-cyan-400 font-extrabold">Alerts</span>
         </h1>
         
         {/* Subtitle Description */}

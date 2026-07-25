@@ -190,27 +190,27 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/95 p-6 sm:p-8 shadow-glow backdrop-blur-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 dark:bg-slate-950/80 backdrop-blur-md animate-fade-in">
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/95 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl transition-colors">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 rounded-full bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+          className="absolute top-5 right-5 p-1.5 rounded-full bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header */}
         <div className="mb-6 space-y-1 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 mb-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-600 dark:text-teal-400 mb-2">
             {mode === 'login' && <Lock className="w-6 h-6" />}
             {mode === 'register' && <Sparkles className="w-6 h-6" />}
             {mode === 'verify' && <ShieldCheck className="w-6 h-6" />}
             {(mode === 'forgot' || mode === 'reset') && <KeyRound className="w-6 h-6" />}
           </div>
 
-          <h2 className="font-heading text-2xl font-bold text-white tracking-tight">
+          <h2 className="font-heading text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             {mode === 'login' && 'Welcome Back'}
             {mode === 'register' && 'Create Account'}
             {mode === 'verify' && 'Verify Your Email'}
@@ -218,7 +218,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
             {mode === 'reset' && 'Reset Password'}
           </h2>
 
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             {mode === 'login' && 'Sign in to manage your notice subscriptions'}
             {mode === 'register' && 'Register to receive instant email notifications'}
             {mode === 'verify' && `Enter the 6-digit OTP code sent to ${email}`}

@@ -39,6 +39,26 @@ async def unsubscribe_from_category(
     """
     return await user_service.unsubscribe_user_from_category(db, current_user, category_name)
 
+@router.post("/subscribe-all", response_model=UserRead)
+async def subscribe_to_all_categories(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """
+    Subscribe current user to ALL categories in the system.
+    """
+    return await user_service.subscribe_user_to_all_categories(db, current_user)
+
+@router.post("/unsubscribe-all", response_model=UserRead)
+async def unsubscribe_from_all_categories(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """
+    Unsubscribe current user from ALL categories.
+    """
+    return await user_service.unsubscribe_user_from_all_categories(db, current_user)
+
 @router.get("/categories", response_model=List[CategoryRead])
 async def list_categories(
     db: AsyncSession = Depends(get_db)
@@ -56,7 +76,9 @@ async def update_profile(
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """
-    Update profile details (e.g. full_name) of the logged-in user.
+    Update profile details (e.g. full_name, is_email_paused) of the logged-in user.
     """
-    return await user_service.update_user_profile(db, current_user, user_update.full_name)
+    return await user_service.update_user_profile(
+        db, current_user, full_name=user_update.full_name, is_email_paused=user_update.is_email_paused
+    )
 

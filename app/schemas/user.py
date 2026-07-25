@@ -13,10 +13,12 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
+    is_email_paused: Optional[bool] = None
 
 class UserRead(UserBase):
     id: int
     is_active: bool
+    is_email_paused: bool = False
     created_at: datetime
     subscriptions: List[CategoryRead] = []
     oauth_provider: Optional[str] = None

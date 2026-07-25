@@ -274,17 +274,77 @@ async def change_user_password(db: AsyncSession, user: User, old_password: str, 
     await db.commit()
     return True
 
-async def update_user_profile(db: AsyncSession, user: User, full_name: str | None) -> User:
+async def update_user_profile(
+    db: AsyncSession, user: User, full_name: str | None = None, is_email_paused: bool | None = None
+) -> User:
     """
-    Updates user profile information such as full name.
+    Updates user profile information such as full name or is_email_paused toggle.
     """
-    user.full_name = full_name
+    if full_name is not None:
+        user.full_name = full_name
+    if is_email_paused is not None:
+        user.is_email_paused = is_email_paused
     await db.commit()
     
     user_id = user.id
     db.expire(user)
     
     from sqlalchemy.orm import selectinload
+    refreshed_user = await db.scalar(
+        select(User)
+        .options(selectinload(User.subscriptions))
+        .where(User.id == user_id)
+    )
+    return refreshed_user
+
+async def subscribe_user_to_all_categories(db: AsyncSession, user: User) -> User:
+    """
+    Subscribes a user to ALL categories in the database.
+    """
+    from app.models.category import Category
+    from app.models.user import user_subscriptions
+    from sqlalchemy.orm import selectinload
+    
+    categories_res = await db.execute(select(Category))
+    all_cats = categories_res.scalars().all()
+    
+    # Get user's existing subscription category_ids
+    existing_subs_res = await db.execute(
+        select(user_subscriptions.c.category_id).where(user_subscriptions.c.user_id == user.id)
+    )
+    existing_cat_ids = set(existing_subs_res.scalars().all())
+    
+    new_inserts = [
+        {"user_id": user.id, "category_id": cat.id}
+        for cat in all_cats if cat.id not in existing_cat_ids
+    ]
+    if new_inserts:
+        await db.execute(user_subscriptions.insert(), new_inserts)
+        await db.commit()
+        
+    user_id = user.id
+    db.expire(user)
+    
+    refreshed_user = await db.scalar(
+        select(User)
+        .options(selectinload(User.subscriptions))
+        .where(User.id == user_id)
+    )
+    return refreshed_user
+
+async def unsubscribe_user_from_all_categories(db: AsyncSession, user: User) -> User:
+    """
+    Unsubscribes a user from ALL categories.
+    """
+    from app.models.user import user_subscriptions
+    from sqlalchemy.orm import selectinload
+    
+    await db.execute(user_subscriptions.delete().where(user_subscriptions.c.user_id == user.id))
+    await db.commit()
+    
+    user_id = user.id
+    db.expire(user)
+    
     refreshed_user = await db.scalar(
         select(User)
         .options(selectinload(User.subscriptions))

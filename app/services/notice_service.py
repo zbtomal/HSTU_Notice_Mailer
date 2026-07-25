@@ -106,7 +106,7 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict], ba
         subscribers_result = await db.execute(
             select(user_subscriptions.c.category_id, User.email)
             .join(User, User.id == user_subscriptions.c.user_id)
-            .where(User.is_active == True)
+            .where(User.is_active == True, User.is_email_paused == False)
         )
         category_subscribers = {}
         for cat_id, email in subscribers_result.all():

@@ -27,6 +27,7 @@ class User(Base):
     oauth_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
     oauth_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_email_paused: Mapped[bool] = mapped_column(Boolean, default=False)
     verification_otp: Mapped[str | None] = mapped_column(String(6), nullable=True)
     otp_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     reset_password_otp: Mapped[str | None] = mapped_column(String(6), nullable=True)

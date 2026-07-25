@@ -57,6 +57,11 @@ CATEGORY_MAPPING = {
     "soil science (ssc)": "Agriculture",
     "plp": "Agriculture",
     "plant pathology (plp)": "Agriculture",
+    "development studies (dev)": "Development Studies",
+    "food engineering & technology (fet)": "Food Engineering & Technology",
+    "economics (ecn)": "Economics",
+    "controller of examinations section": "Controller of Examinations",
+    "enhancing digital government and economy": "Digital Government & Economy",
 }
 
 def normalize_category_name(raw_name: str) -> str:

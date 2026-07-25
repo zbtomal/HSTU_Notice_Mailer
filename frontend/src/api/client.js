@@ -100,6 +100,16 @@ export const userApi = {
     return apiRequest(`/users/unsubscribe?${params.toString()}`, { method: 'POST' });
   },
 
-  updateProfile: (full_name) => 
-    apiRequest('/users/me', { method: 'PATCH', body: { full_name } }),
+  subscribeAll: () => 
+    apiRequest('/users/subscribe-all', { method: 'POST' }),
+
+  unsubscribeAll: () => 
+    apiRequest('/users/unsubscribe-all', { method: 'POST' }),
+
+  updateProfile: (full_name, is_email_paused) => {
+    const body = {};
+    if (full_name !== undefined) body.full_name = full_name;
+    if (is_email_paused !== undefined) body.is_email_paused = is_email_paused;
+    return apiRequest('/users/me', { method: 'PATCH', body });
+  },
 };

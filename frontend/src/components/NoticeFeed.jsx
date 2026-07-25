@@ -175,7 +175,7 @@ export default function NoticeFeed({ openAuthModal }) {
                 ))}
               </div>
             ) : (
-              categories.map((cat) => (
+              [...categories].sort((a, b) => a.name.localeCompare(b.name)).map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => { setSelectedCategory(cat.id); setPage(1); }}

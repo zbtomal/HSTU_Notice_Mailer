@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, nullslast
 from sqlalchemy.orm import selectinload
 from typing import Any, List, Optional
 
@@ -25,7 +25,7 @@ async def list_notices(
     Retrieve notices with optional pagination, category filtering, and search query.
     """
     offset = (page - 1) * limit
-    query = select(Notice).options(selectinload(Notice.category)).order_by(desc(Notice.notice_date_parsed), desc(Notice.id))
+    query = select(Notice).options(selectinload(Notice.category)).order_by(nullslast(desc(Notice.notice_date_parsed)), desc(Notice.id))
     
     if category_id is not None:
         query = query.where(Notice.category_id == category_id)

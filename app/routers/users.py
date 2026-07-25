@@ -46,7 +46,7 @@ async def list_categories(
     """
     List all available notice categories.
     """
-    result = await db.execute(select(Category))
+    result = await db.execute(select(Category).order_by(Category.name.asc()))
     return result.scalars().all()
 
 @router.patch("/me", response_model=UserRead)

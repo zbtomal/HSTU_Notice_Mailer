@@ -81,8 +81,10 @@ export default function Dashboard({ openAuthModal, openProfileModal }) {
     return email ? email[0].toUpperCase() : 'U';
   };
 
-  // Filter categories to exclude 'All' from standard grid since it has its own master banner
-  const departmentCategories = categories.filter(c => c.name !== 'All');
+  // Filter categories to exclude 'All' from standard grid and sort alphabetically A-Z
+  const departmentCategories = categories
+    .filter(c => c.name !== 'All')
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="space-y-8 pb-16">
@@ -227,7 +229,7 @@ export default function Dashboard({ openAuthModal, openProfileModal }) {
               {departmentCategories.map((cat) => {
                 const isSubscribed = subscribedCategoryNames.has(cat.name);
                 const isBusy = togglingCategory === cat.name;
-                const isGeneral = cat.name === 'General';
+                const isOfficeSection = cat.name === 'Office & Section' || cat.name === 'General';
 
                 return (
                   <div
@@ -242,12 +244,12 @@ export default function Dashboard({ openAuthModal, openProfileModal }) {
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
                         isSubscribed ? 'bg-teal-500 text-slate-950' : 'bg-slate-800 text-slate-500'
                       }`}>
-                        {isGeneral ? <Building2 className="w-4 h-4 text-amber-400" /> : <Layers className="w-4 h-4" />}
+                        {isOfficeSection ? <Building2 className="w-4 h-4 text-amber-400" /> : <Layers className="w-4 h-4" />}
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-bold text-sm text-slate-100 truncate">{cat.name}</h3>
                         <p className="text-[11px] text-slate-400">
-                          {isGeneral ? 'Administration & Official Notices' : isSubscribed ? 'Subscribed to emails' : 'Not subscribed'}
+                          {isOfficeSection ? 'Administration & Official Notices' : isSubscribed ? 'Subscribed to emails' : 'Not subscribed'}
                         </p>
                       </div>
                     </div>

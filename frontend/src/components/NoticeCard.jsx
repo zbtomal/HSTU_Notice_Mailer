@@ -4,7 +4,7 @@ import { Calendar, Download, ExternalLink, Tag, ChevronDown, ChevronUp, FileText
 export default function NoticeCard({ notice }) {
   const [expanded, setExpanded] = useState(false);
 
-  const categoryName = notice.category?.name || 'General';
+  const categoryName = notice.category?.name || 'Office & Section';
   const hasDownload = Boolean(notice.download_link);
   const descriptionText = notice.description || '';
   const isLongDescription = descriptionText.length > 220;

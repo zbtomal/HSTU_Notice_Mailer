@@ -23,12 +23,48 @@ DATE_PATTERN = re.compile(
 )
 
 def _extract_notice_id(notice_link: str, title: str, date: str | None) -> str:
-    match = re.search(r"(\d+)(?!.*\d)", notice_link)
-    if match:
-        return match.group(1)
-
-    fallback_text = f"{notice_link}|{title}|{date or ''}"
+    fallback_text = f"{notice_link.strip().lower()}|{title.strip().lower()}"
     return hashlib.md5(fallback_text.encode("utf-8")).hexdigest()[:24]
+
+CATEGORY_MAPPING = {
+    "cse": "Computer Science and Engineering",
+    "computer science and engineering (cse)": "Computer Science and Engineering",
+    "computer science & engineering": "Computer Science and Engineering",
+    "eee": "Electrical and Electronic Engineering",
+    "electrical and electronic engineering (eee)": "Electrical and Electronic Engineering",
+    "ece": "Electronics and Communication Engineering",
+    "electronics and communication engineering (ece)": "Electronics and Communication Engineering",
+    "general": "Office & Section",
+    "office & section": "Office & Section",
+    "office and section": "Office & Section",
+    "bba": "Business Studies",
+    "business studies (bba)": "Business Studies",
+    "management (mgt)": "Business Studies",
+    "finance and banking (fib)": "Business Studies",
+    "che": "Science",
+    "chemistry (che)": "Science",
+    "mat": "Science",
+    "mathematics (mat)": "Science",
+    "stt": "Science",
+    "statistics (stt)": "Science",
+    "gpb": "Agriculture",
+    "genetics & plant breeding (gpb)": "Agriculture",
+    "hrt": "Agriculture",
+    "horticulture (hrt)": "Agriculture",
+    "agf": "Agriculture",
+    "agroforestry and environment (agf)": "Agriculture",
+    "ssc": "Agriculture",
+    "soil science (ssc)": "Agriculture",
+    "plp": "Agriculture",
+    "plant pathology (plp)": "Agriculture",
+}
+
+def normalize_category_name(raw_name: str) -> str:
+    if not raw_name:
+        return "Office & Section"
+    clean = raw_name.strip()
+    key = clean.lower()
+    return CATEGORY_MAPPING.get(key, clean)
 
 def _safe_text(tag: Tag | None) -> str:
     if not tag:
@@ -133,12 +169,12 @@ def scrape_latest_notices() -> list[dict]:
         seen_notice_ids.add(notice_id)
         
         # Determine category from the page markup (icon class fa-building)
-        category = "General"
+        category = "Office & Section"
         category_icon = container.find("i", class_="fa-building")
         if category_icon and category_icon.parent:
             extracted_category = _safe_text(category_icon.parent).strip()
             if extracted_category:
-                category = extracted_category
+                category = normalize_category_name(extracted_category)
             
         notices.append({
             "notice_id": notice_id,

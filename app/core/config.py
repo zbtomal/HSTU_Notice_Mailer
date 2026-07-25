@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    SCRAPER_API_KEY: str = "dev_scraper_key_123"
+    SCRAPER_API_KEY: str
 
     # Email SMTP
     SMTP_HOST: str

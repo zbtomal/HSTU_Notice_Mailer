@@ -4,13 +4,15 @@ import Navbar from './components/Navbar';
 import NoticeFeed from './components/NoticeFeed';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
+import ProfileModal from './components/ProfileModal';
 import Toast from './components/Toast';
-import { Heart, ExternalLink, ShieldCheck, Mail } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'dashboard'
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const openAuthModal = (mode = 'login') => {
     setAuthModalMode(mode);
@@ -19,6 +21,14 @@ function AppContent() {
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+  };
+
+  const openProfileModal = () => {
+    setIsProfileModalOpen(true);
+  };
+
+  const closeProfileModal = () => {
+    setIsProfileModalOpen(false);
   };
 
   return (
@@ -32,6 +42,7 @@ function AppContent() {
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
         openAuthModal={openAuthModal} 
+        openProfileModal={openProfileModal}
       />
 
       {/* Main Container */}
@@ -41,7 +52,10 @@ function AppContent() {
         )}
 
         {activeTab === 'dashboard' && (
-          <Dashboard openAuthModal={openAuthModal} />
+          <Dashboard 
+            openAuthModal={openAuthModal} 
+            openProfileModal={openProfileModal}
+          />
         )}
       </main>
 
@@ -51,6 +65,12 @@ function AppContent() {
         onClose={closeAuthModal}
         initialMode={authModalMode}
         onSuccessLogin={() => setActiveTab('dashboard')}
+      />
+
+      {/* Profile & Account Settings Modal */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={closeProfileModal}
       />
 
       {/* Footer */}

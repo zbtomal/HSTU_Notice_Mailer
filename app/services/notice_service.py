@@ -79,13 +79,13 @@ async def process_scraped_notices(db: AsyncSession, notices_data: list[dict], ba
         
         # 4. Trigger emails to subscribers only if safety checks allow
         if should_send_emails:
-            # Fetch all users subscribed to this category OR the "General" category
-            general_category = categories_map.get("General")
+            # Fetch all users subscribed to this specific category OR the master "All" category
+            all_category = categories_map.get("All")
             query = select(User.email).distinct().join(user_subscriptions)
-            if general_category:
+            if all_category:
                 query = query.where(
                     ((user_subscriptions.c.category_id == category.id) | 
-                     (user_subscriptions.c.category_id == general_category.id)),
+                     (user_subscriptions.c.category_id == all_category.id)),
                     User.is_active == True
                 )
             else:

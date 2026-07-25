@@ -74,22 +74,22 @@ export default function NoticeFeed({ openAuthModal }) {
   return (
     <div className="space-y-8 pb-16">
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-3xl border border-teal-500/20 bg-gradient-to-b from-slate-900/90 via-slate-900/60 to-slate-950/80 p-6 sm:p-10 shadow-glow">
+      {/* Hero Section Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-teal-500/30 bg-white dark:bg-slate-900/80 p-6 sm:p-10 shadow-xl shadow-teal-500/5 dark:shadow-glow transition-all">
         <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-64 h-64 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-300 border border-teal-500/20">
-            <Bell className="w-3.5 h-3.5 text-teal-400" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-300 border border-teal-500/20">
+            <Bell className="w-3.5 h-3.5 text-teal-500 dark:text-teal-400" />
             HSTU Official Announcement Portal
           </div>
 
-          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Stay Ahead with Instant <span className="bg-gradient-to-r from-teal-400 via-cyan-300 to-amber-300 bg-clip-text text-transparent">Notice Alerts</span>
+          <h1 className="font-heading text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+            Stay Ahead with Instant <span className="bg-gradient-to-r from-teal-600 via-cyan-600 to-amber-600 dark:from-teal-400 dark:via-cyan-300 dark:to-amber-300 bg-clip-text text-transparent">Notice Alerts</span>
           </h1>
 
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
             Automated scraping and direct email notifications for Hajee Mohammad Danesh Science and Technology University notices, filtered by your exact department and section.
           </p>
 
@@ -119,7 +119,7 @@ export default function NoticeFeed({ openAuthModal }) {
               placeholder="Search notices by keyword..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all"
+              className="w-full pl-10 pr-24 py-2.5 rounded-xl glass-input text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all"
             />
             <button
               type="submit"
@@ -133,7 +133,7 @@ export default function NoticeFeed({ openAuthModal }) {
             {(selectedCategory || searchQuery) && (
               <button
                 onClick={handleResetFilters}
-                className="px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-xs font-semibold text-slate-400 hover:text-white hover:border-slate-700 transition-all"
+                className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all shadow-sm"
               >
                 Clear Filters
               </button>
@@ -141,28 +141,28 @@ export default function NoticeFeed({ openAuthModal }) {
             <button
               onClick={loadNotices}
               disabled={loading}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-xs font-semibold text-slate-300 hover:text-teal-300 hover:border-teal-500/30 transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-300 transition-all shadow-sm"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-teal-400' : ''}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-teal-500' : ''}`} />
               Refresh
             </button>
           </div>
         </div>
 
-        {/* Category Tabs */}
+        {/* Category Filter Tabs */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <Layers className="w-3.5 h-3.5 text-teal-400" />
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <Layers className="w-3.5 h-3.5 text-teal-500" />
             Category Filter
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
             <button
               onClick={() => { setSelectedCategory(null); setPage(1); }}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 selectedCategory === null
-                  ? 'bg-teal-500 text-slate-950 shadow-glow'
-                  : 'bg-slate-900/80 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
+                  ? 'bg-teal-500 text-slate-950 shadow-md'
+                  : 'bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-teal-500/40 hover:text-teal-600 dark:hover:text-white shadow-sm'
               }`}
             >
               All Categories
@@ -171,7 +171,7 @@ export default function NoticeFeed({ openAuthModal }) {
             {categoriesLoading ? (
               <div className="flex gap-2 animate-pulse">
                 {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="h-8 w-24 bg-slate-800/60 rounded-xl" />
+                  <div key={i} className="h-8 w-24 bg-slate-200 dark:bg-slate-800/60 rounded-xl" />
                 ))}
               </div>
             ) : (
@@ -179,10 +179,10 @@ export default function NoticeFeed({ openAuthModal }) {
                 <button
                   key={cat.id}
                   onClick={() => { setSelectedCategory(cat.id); setPage(1); }}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                     selectedCategory === cat.id
-                      ? 'bg-teal-500 text-slate-950 shadow-glow'
-                      : 'bg-slate-900/80 border border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white'
+                      ? 'bg-teal-500 text-slate-950 shadow-md'
+                      : 'bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-teal-500/40 hover:text-teal-600 dark:hover:text-white shadow-sm'
                   }`}
                 >
                   {cat.name}
@@ -199,37 +199,37 @@ export default function NoticeFeed({ openAuthModal }) {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map((n) => (
-              <div key={n} className="h-56 rounded-2xl bg-slate-900/60 border border-slate-800/80 p-6 animate-pulse space-y-4">
+              <div key={n} className="h-56 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-6 animate-pulse space-y-4 shadow-sm">
                 <div className="flex justify-between">
-                  <div className="h-4 w-20 bg-slate-800 rounded-full" />
-                  <div className="h-4 w-24 bg-slate-800 rounded-full" />
+                  <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                  <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded-full" />
                 </div>
-                <div className="h-6 w-3/4 bg-slate-800 rounded-lg" />
-                <div className="h-12 w-full bg-slate-800/50 rounded-lg" />
-                <div className="h-6 w-1/3 bg-slate-800 rounded-lg pt-4" />
+                <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+                <div className="h-12 w-full bg-slate-100 dark:bg-slate-800/50 rounded-lg" />
+                <div className="h-6 w-1/3 bg-slate-200 dark:bg-slate-800 rounded-lg pt-4" />
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="p-8 rounded-2xl border border-rose-500/20 bg-rose-950/20 text-center space-y-3">
-            <p className="text-rose-400 font-semibold">{error}</p>
+          <div className="p-8 rounded-2xl border border-rose-500/20 bg-rose-50 dark:bg-rose-950/20 text-center space-y-3">
+            <p className="text-rose-600 dark:text-rose-400 font-semibold">{error}</p>
             <button
               onClick={loadNotices}
-              className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-200 hover:text-white"
+              className="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:text-teal-600 shadow-sm"
             >
               Try Again
             </button>
           </div>
         ) : notices.length === 0 ? (
-          <div className="p-12 rounded-2xl border border-slate-800 bg-slate-900/40 text-center space-y-3">
-            <Filter className="w-10 h-10 text-slate-600 mx-auto" />
-            <h3 className="text-lg font-bold text-slate-300">No notices found</h3>
-            <p className="text-xs text-slate-400 max-w-sm mx-auto">
+          <div className="p-12 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-center space-y-3 shadow-sm">
+            <Filter className="w-10 h-10 text-slate-400 mx-auto" />
+            <h3 className="text-lg font-bold text-slate-800 dark:text-slate-300">No notices found</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
               We couldn't find any notices matching your search or category filter. Try clearing filters.
             </p>
             <button
               onClick={handleResetFilters}
-              className="px-4 py-2 rounded-xl bg-teal-500/10 text-teal-300 border border-teal-500/20 text-xs font-semibold hover:bg-teal-500/20"
+              className="px-4 py-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-300 border border-teal-500/20 text-xs font-semibold hover:bg-teal-500/20"
             >
               Reset Filters
             </button>
@@ -245,29 +245,29 @@ export default function NoticeFeed({ openAuthModal }) {
 
       {/* Pagination Controls */}
       {!loading && notices.length > 0 && (
-        <div className="flex items-center justify-between pt-6 border-t border-slate-800/80">
-          <p className="text-xs text-slate-400">
-            Showing Page <span className="font-bold text-slate-200">{page}</span>
+        <div className="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-800/80">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Showing Page <span className="font-bold text-slate-900 dark:text-slate-200">{page}</span>
           </p>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition-all"
+              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
             >
               <ChevronLeft className="w-4 h-4" />
               Previous
             </button>
 
-            <span className="px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-300 border border-teal-500/20 font-bold text-xs">
+            <span className="px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20 font-bold text-xs">
               {page}
             </span>
 
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={notices.length < LIMIT}
-              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-800 transition-all"
+              className="flex items-center gap-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-sm"
             >
               Next
               <ChevronRight className="w-4 h-4" />

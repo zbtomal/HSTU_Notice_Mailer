@@ -83,7 +83,8 @@ The project uses PostgreSQL (via **SQLAlchemy asyncpg**).
 4. **Webhook Submission**: If new notices are found, it POSTs the delta to `POST /api/v1/scraper/webhook` using `SCRAPER_API_KEY` authentication (with a generous 180s timeout to survive cold starts).
 5. **Database Sync**: The backend inserts notices and creates new categories dynamically.
 6. **Mailing List Evaluation**:
-   - For each new notice, the backend fetches users subscribed to the notice's specific category **OR** subscribed to the `"General"` category (which acts as a master subscription).
+   - For each new notice, the backend fetches users subscribed to the notice's specific category **OR** subscribed to the `"All"` category (which acts as the master subscription for all notices).
+   - The `"General"` category is treated as a standard notice category representing official university administration notices.
    - If the database is completely empty (first run), email notifications are bypassed as a spam shield.
 7. **FastAPI Background Tasks**: Email alerts are sent asynchronously in the background. The API response returns immediately, ensuring the scraper finishes in a few seconds while emails dispatch gracefully in the background.
 

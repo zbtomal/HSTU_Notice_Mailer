@@ -9,6 +9,30 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
 
+  // Theme State: 'dark' | 'light'
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prevTheme) => {
+      const nextTheme = prevTheme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', nextTheme);
+      return nextTheme;
+    });
+  }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.setAttribute('data-theme', 'light');
+      root.classList.add('light');
+      root.classList.remove('dark');
+    } else {
+      root.setAttribute('data-theme', 'hstu');
+      root.classList.add('dark');
+      root.classList.remove('light');
+    }
+  }, [theme]);
+
   // Helper to trigger toast messages
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type, id: Date.now() });
@@ -32,7 +56,6 @@ export const AuthProvider = ({ children }) => {
     if (res.ok) {
       setUser(res.data);
     } else {
-      // Invalid/expired token
       console.warn('Token validation failed:', res.error);
       localStorage.removeItem('access_token');
       setToken(null);
@@ -81,6 +104,8 @@ export const AuthProvider = ({ children }) => {
     toast,
     showToast,
     hideToast,
+    theme,
+    toggleTheme,
   };
 
   return (

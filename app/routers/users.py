@@ -8,7 +8,7 @@ from app.models.category import Category
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserRead
+from app.schemas.user import UserRead, UserUpdate
 from app.services import user_service
 from app.dependencies import get_current_active_user
 
@@ -19,18 +19,18 @@ router = APIRouter(
 
 @router.post("/subscribe", response_model=UserRead)
 async def subscribe_to_category(
-    category_name: str = "General",
+    category_name: str = "All",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
     """
-    Subscribe the current user to a notice category (e.g. 'General', 'CSE').
+    Subscribe the current user to a notice category (e.g. 'All', 'General', 'CSE').
     """
     return await user_service.subscribe_user_to_category(db, current_user, category_name)
 
 @router.post("/unsubscribe", response_model=UserRead)
 async def unsubscribe_from_category(
-    category_name: str = "General",
+    category_name: str = "All",
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
@@ -48,3 +48,15 @@ async def list_categories(
     """
     result = await db.execute(select(Category))
     return result.scalars().all()
+
+@router.patch("/me", response_model=UserRead)
+async def update_profile(
+    user_update: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+) -> Any:
+    """
+    Update profile details (e.g. full_name) of the logged-in user.
+    """
+    return await user_service.update_user_profile(db, current_user, user_update.full_name)
+

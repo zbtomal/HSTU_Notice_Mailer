@@ -99,4 +99,7 @@ export const userApi = {
     const params = new URLSearchParams({ category_name });
     return apiRequest(`/users/unsubscribe?${params.toString()}`, { method: 'POST' });
   },
+
+  updateProfile: (full_name) => 
+    apiRequest('/users/me', { method: 'PATCH', body: { full_name } }),
 };

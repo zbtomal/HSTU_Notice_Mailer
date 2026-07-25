@@ -273,3 +273,22 @@ async def change_user_password(db: AsyncSession, user: User, old_password: str, 
     user.hashed_password = get_password_hash(new_password)
     await db.commit()
     return True
+
+async def update_user_profile(db: AsyncSession, user: User, full_name: str | None) -> User:
+    """
+    Updates user profile information such as full name.
+    """
+    user.full_name = full_name
+    await db.commit()
+    
+    user_id = user.id
+    db.expire(user)
+    
+    from sqlalchemy.orm import selectinload
+    refreshed_user = await db.scalar(
+        select(User)
+        .options(selectinload(User.subscriptions))
+        .where(User.id == user_id)
+    )
+    return refreshed_user
+

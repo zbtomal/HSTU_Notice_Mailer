@@ -1,12 +1,12 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Bell, BellRing, LogOut, User as UserIcon, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Bell, BellRing, LogOut, User as UserIcon, LayoutDashboard, Sparkles, Settings, Sun, Moon } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, openAuthModal }) {
-  const { user, isAuthenticated, logout } = useAuth();
+export default function Navbar({ activeTab, setActiveTab, openAuthModal, openProfileModal }) {
+  const { user, isAuthenticated, logout, theme, toggleTheme } = useAuth();
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/80 border-b border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
@@ -22,7 +22,7 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal }) {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-heading text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-teal-200 bg-clip-text text-transparent">
+                <span className="font-heading text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 via-teal-400 to-cyan-500 dark:from-white dark:via-slate-100 dark:to-teal-200 bg-clip-text text-transparent">
                   HSTU Notice Mailer
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20">
@@ -66,16 +66,34 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal }) {
             </button>
           </nav>
 
-          {/* Auth Controls */}
+          {/* Auth Controls & Theme Toggle */}
           <div className="flex items-center gap-3">
+            
+            {/* Theme Toggle Button (Sun / Moon) */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/40 text-slate-300 transition-all cursor-pointer shadow-sm hover:scale-105"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-teal-600" />
+              )}
+            </button>
+
             {isAuthenticated ? (
               <div className="flex items-center gap-3">
+                
+                {/* Clickable User Badge -> Opens Profile Modal */}
                 <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/40 text-xs text-slate-300 hover:text-teal-300 transition-all"
+                  onClick={openProfileModal}
+                  className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-teal-500/40 text-xs text-slate-300 hover:text-teal-300 transition-all cursor-pointer group shadow-sm"
+                  title="Click to open Profile Settings & Change Password"
                 >
                   <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="max-w-[140px] truncate font-medium">{user.email}</span>
+                  <span className="max-w-[160px] truncate font-semibold group-hover:underline">{user.full_name || user.email}</span>
+                  <Settings className="w-3.5 h-3.5 text-slate-500 group-hover:text-teal-400 group-hover:rotate-45 transition-transform" />
                 </button>
 
                 <button

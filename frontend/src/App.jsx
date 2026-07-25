@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import NoticeFeed from './components/NoticeFeed';
@@ -9,10 +10,32 @@ import Toast from './components/Toast';
 import { ExternalLink } from 'lucide-react';
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState('feed'); // 'feed' | 'dashboard'
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState('login');
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+
+  // Sync /login and /register URL paths with AuthModal
+  useEffect(() => {
+    if (location.pathname === '/login') {
+      if (isAuthenticated) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        setAuthModalMode('login');
+        setIsAuthModalOpen(true);
+      }
+    } else if (location.pathname === '/register') {
+      if (isAuthenticated) {
+        navigate('/dashboard', { replace: true });
+      } else {
+        setAuthModalMode('register');
+        setIsAuthModalOpen(true);
+      }
+    }
+  }, [location.pathname, isAuthenticated, navigate]);
 
   const openAuthModal = (mode = 'login') => {
     setAuthModalMode(mode);
@@ -21,6 +44,9 @@ function AppContent() {
 
   const closeAuthModal = () => {
     setIsAuthModalOpen(false);
+    if (location.pathname === '/login' || location.pathname === '/register') {
+      navigate('/', { replace: true });
+    }
   };
 
   const openProfileModal = () => {
@@ -39,24 +65,37 @@ function AppContent() {
 
       {/* Navigation Header */}
       <Navbar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
         openAuthModal={openAuthModal} 
         openProfileModal={openProfileModal}
       />
 
-      {/* Main Container */}
+      {/* Main Container with React Router Routes */}
       <main className="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-12 overflow-x-hidden">
-        {activeTab === 'feed' && (
-          <NoticeFeed openAuthModal={openAuthModal} />
-        )}
-
-        {activeTab === 'dashboard' && (
-          <Dashboard 
-            openAuthModal={openAuthModal} 
-            openProfileModal={openProfileModal}
+        <Routes>
+          <Route 
+            path="/" 
+            element={<NoticeFeed openAuthModal={openAuthModal} />} 
           />
-        )}
+          <Route 
+            path="/login" 
+            element={<NoticeFeed openAuthModal={openAuthModal} />} 
+          />
+          <Route 
+            path="/register" 
+            element={<NoticeFeed openAuthModal={openAuthModal} />} 
+          />
+          <Route 
+            path="/dashboard" 
+            element={
+              <Dashboard 
+                openAuthModal={openAuthModal} 
+                openProfileModal={openProfileModal}
+              />
+            } 
+          />
+          {/* Catch-all redirect to Home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
       {/* Auth Modal Container */}
@@ -64,7 +103,7 @@ function AppContent() {
         isOpen={isAuthModalOpen}
         onClose={closeAuthModal}
         initialMode={authModalMode}
-        onSuccessLogin={() => setActiveTab('dashboard')}
+        onSuccessLogin={() => navigate('/dashboard', { replace: true })}
       />
 
       {/* Profile & Account Settings Modal */}

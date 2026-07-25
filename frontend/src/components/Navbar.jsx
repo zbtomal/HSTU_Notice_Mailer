@@ -1,9 +1,15 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Bell, BellRing, LogOut, User as UserIcon, LayoutDashboard, Sparkles, Settings, Sun, Moon } from 'lucide-react';
 
-export default function Navbar({ activeTab, setActiveTab, openAuthModal, openProfileModal }) {
+export default function Navbar({ openAuthModal, openProfileModal }) {
   const { user, isAuthenticated, logout, theme, toggleTheme } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isFeed = location.pathname === '/';
+  const isDashboard = location.pathname === '/dashboard';
 
   return (
     <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/85 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800/80 transition-colors shadow-sm">
@@ -12,7 +18,7 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal, openPro
           
           {/* Brand / Logo */}
           <div 
-            onClick={() => setActiveTab('feed')} 
+            onClick={() => navigate('/')} 
             className="flex items-center gap-2 sm:gap-3 cursor-pointer group min-w-0"
           >
             <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-teal-500 to-cyan-400 text-slate-950 font-bold shadow-glow group-hover:scale-105 transition-all duration-300 shrink-0">
@@ -36,9 +42,9 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal, openPro
           {/* Center Navigation Links (Desktop) */}
           <nav className="hidden md:flex items-center gap-1 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80">
             <button
-              onClick={() => setActiveTab('feed')}
+              onClick={() => navigate('/')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeTab === 'feed'
+                isFeed
                   ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-semibold shadow-md'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/50'
               }`}
@@ -50,13 +56,13 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal, openPro
             <button
               onClick={() => {
                 if (isAuthenticated) {
-                  setActiveTab('dashboard');
+                  navigate('/dashboard');
                 } else {
                   openAuthModal('login');
                 }
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                activeTab === 'dashboard'
+                isDashboard
                   ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-semibold shadow-md'
                   : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/50'
               }`}
@@ -108,13 +114,13 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal, openPro
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
-                  onClick={() => openAuthModal('login')}
+                  onClick={() => navigate('/login')}
                   className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all"
                 >
                   Sign In
                 </button>
                 <button
-                  onClick={() => openAuthModal('register')}
+                  onClick={() => navigate('/register')}
                   className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 hover:brightness-110 shadow-glow transition-all"
                 >
                   <UserIcon className="w-3.5 h-3.5" />
@@ -130,9 +136,9 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal, openPro
         {/* Mobile Navigation Bar */}
         <div className="flex md:hidden justify-around py-2 border-t border-slate-200 dark:border-slate-800/60">
           <button
-            onClick={() => setActiveTab('feed')}
+            onClick={() => navigate('/')}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'feed' 
+              isFeed 
                 ? 'bg-teal-500/10 text-teal-600 dark:text-teal-300 border border-teal-500/30' 
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
@@ -142,11 +148,11 @@ export default function Navbar({ activeTab, setActiveTab, openAuthModal, openPro
           </button>
           <button
             onClick={() => {
-              if (isAuthenticated) setActiveTab('dashboard');
-              else openAuthModal('login');
+              if (isAuthenticated) navigate('/dashboard');
+              else navigate('/login');
             }}
             className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              activeTab === 'dashboard' 
+              isDashboard 
                 ? 'bg-teal-500/10 text-teal-600 dark:text-teal-300 border border-teal-500/30' 
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}

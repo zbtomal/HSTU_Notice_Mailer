@@ -6,9 +6,6 @@ on:
     - cron: '4,19,34,49 * * * *'
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
-permissions:
-  contents: write
-
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -31,9 +28,3 @@ jobs:
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           SCRAPER_API_KEY: ${{ secrets.SCRAPER_API_KEY }}
         run: python scraper.py
-
-      - name: Commit updated last notice ID
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "auto: update last notice ID [skip ci]"
-          file_pattern: 'last_notice_id.txt'

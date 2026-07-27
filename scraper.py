@@ -208,12 +208,15 @@ def main():
         
     api_url = f"{api_base_url.rstrip('/')}/api/v1/scraper/webhook"
     
-    # Read last notice ID from cache file if it exists
+    # Fetch last notice ID from backend API
     last_notice_id = None
-    cache_file = "last_notice_id.txt"
-    if os.path.exists(cache_file):
-        with open(cache_file, "r") as f:
-            last_notice_id = f.read().strip()
+    try:
+        res = requests.get(f"{api_base_url.rstrip('/')}/api/v1/scraper/last-id", timeout=15)
+        if res.status_code == 200:
+            last_notice_id = res.json().get("last_notice_id")
+            logger.info("Fetched last notice ID from API: %s", last_notice_id)
+    except Exception as e:
+        logger.warning("Failed to fetch last notice ID from API: %s. Proceeding with all notices.", e)
             
     notices = scrape_latest_notices()
     if not notices:
@@ -251,9 +254,8 @@ def main():
         response.raise_for_status()
         logger.info("Webhook success response: %s", response.json())
         
-        # Save the new latest notice ID to cache file
-        with open(cache_file, "w") as f:
-            f.write(new_latest_id)
+        # Local cache file is no longer needed since state is persisted directly in the database
+        pass
             
     except requests.RequestException as e:
         logger.error("Failed to send notices to webhook: %s", e)

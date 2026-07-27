@@ -40,7 +40,6 @@ HSTU_Notice_Mailer/
 ├── frontend/                 # React Frontend Application (to be built)
 │   └── index.html            # Temporary static index file
 ├── scraper.py                # Standalone scraping client (runs locally or via GitHub Actions)
-├── last_notice_id.txt        # Stores the ID of the last notice processed to prevent repeat requests
 ├── vercel.json               # Serverless routing setup for Vercel deployment
 ├── requirements.txt          # Python dependencies
 └── runtime.txt               # Specifies Python version (3.12.2) for Render
@@ -79,9 +78,9 @@ The project uses PostgreSQL (via **SQLAlchemy asyncpg**).
 ### B. Notice Scraper & Mail Dispatch
 1. **Cron Trigger**: GitHub Actions runs `scraper.py` every 15 minutes.
 2. **Parsing**: It parses the HSTU portal (`https://hstu.ac.bd/page/notice_all`), extracting title, link, download link, date, and category (from the `<i class="fa fa-building"></i>` parent span text).
-3. **Delta Check**: The scraper reads `last_notice_id.txt`. If the latest notice on the website matches the saved ID, it terminates instantly without hitting the API.
+3. **Delta Check**: The scraper queries the backend `GET /api/v1/scraper/last-id` to fetch the latest notice ID stored in the DB. If the latest notice on the website matches this database ID, it terminates instantly without hitting the API.
 4. **Webhook Submission**: If new notices are found, it POSTs the delta to `POST /api/v1/scraper/webhook` using `SCRAPER_API_KEY` authentication (with a generous 180s timeout to survive cold starts).
-5. **Database Sync**: The backend inserts notices and creates new categories dynamically.
+5. **Database Sync**: The backend inserts notices and creates new categories dynamically. This automatically updates the latest notice ID in the database, avoiding the need to write/commit files back to Git.
 6. **Mailing List Evaluation**:
    - For each new notice, the backend fetches users subscribed to the notice's specific category **OR** subscribed to the `"All"` category (which acts as the master subscription for all notices).
    - The official university administration notice category is named `"Office & Section"` (matching HSTU portal taxonomy).

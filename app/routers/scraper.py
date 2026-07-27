@@ -28,3 +28,19 @@ async def scraper_webhook(
         
     # Endpoint for GitHub Actions scraper to submit newly scraped notices.
     return await notice_service.process_scraped_notices(db, payload, background_tasks)
+
+@router.get("/last-id", status_code=status.HTTP_200_OK)
+async def get_last_notice_id(
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    # Retrieve the latest notice ID from the database to avoid committing last_notice_id.txt to Git.
+    from app.models.notice import Notice
+    from sqlalchemy import select, desc
+    
+    result = await db.execute(
+        select(Notice.notice_id)
+        .order_by(desc(Notice.notice_date_parsed), desc(Notice.id))
+        .limit(1)
+    )
+    last_id = result.scalar_one_or_none()
+    return {"last_notice_id": last_id}

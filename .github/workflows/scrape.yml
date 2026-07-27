@@ -32,4 +32,6 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_FROM_EMAIL: ${{ secrets.SMTP_FROM_EMAIL }}
           SMTP_USE_TLS: ${{ secrets.SMTP_USE_TLS }}
+          SECRET_KEY: "temporary_dummy_value_for_actions_runner"
+          SCRAPER_API_KEY: "temporary_dummy_value_for_actions_runner"
         run: python cron_worker.py

@@ -15,7 +15,7 @@ async def send_email(to_email: str, subject: str, html_content: str) -> bool:
         # Determine TLS / STARTTLS automatically based on port
         # Port 465 is direct TLS, Port 587/25 is STARTTLS
         use_direct_tls = settings.SMTP_PORT == 465
-        use_start_tls = settings.SMTP_PORT in (587, 25) or settings.SMTP_USE_TLS
+        use_start_tls = not use_direct_tls and (settings.SMTP_PORT in (587, 25) or settings.SMTP_USE_TLS)
 
         await aiosmtplib.send(
             msg,

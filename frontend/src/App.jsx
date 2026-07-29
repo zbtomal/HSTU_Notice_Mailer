@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import NoticeFeed from './components/NoticeFeed';
 import Dashboard from './components/Dashboard';
 import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import Toast from './components/Toast';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, ShieldCheck } from 'lucide-react';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -93,6 +94,10 @@ function AppContent() {
               />
             } 
           />
+          <Route 
+            path="/privacy" 
+            element={<PrivacyPolicy />} 
+          />
           {/* Catch-all redirect to Home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -124,6 +129,13 @@ function AppContent() {
             </div>
 
             <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+              <Link
+                to="/privacy"
+                className="hover:text-teal-600 dark:hover:text-teal-300 flex items-center gap-1 transition-colors font-medium"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> Privacy Policy
+              </Link>
+              <span>•</span>
               <a 
                 href="https://hstu.ac.bd/page/notice_all" 
                 target="_blank" 
@@ -136,8 +148,11 @@ function AppContent() {
 
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-900 text-center text-[11px] text-slate-400 dark:text-slate-500">
-            Powered by FastAPI Async Scraper & React Tailwind UI
+          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-900 text-center text-xs text-slate-400 dark:text-slate-500 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+            <span>Built with ❤️ for the HSTU Community by</span>
+            <span className="font-semibold text-teal-600 dark:text-teal-400">
+              Jannatul Ferdaous, Ashikur Rahman & Zikrul Bari Tomal
+            </span>
           </div>
         </div>
       </footer>

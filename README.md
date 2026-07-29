@@ -72,9 +72,9 @@ Built with **FastAPI**, **React**, **PostgreSQL**, **Tailwind CSS**, and asynchr
 
 | Name | Contribution |
 |------|--------------|
-| **Zikrul Bari Tomal** | Backend Development, Scraper Engine, API Development |
+| **Zikrul Bari Tomal** | Backend Development, Database Design, Scraper Engine, API Development & Deployment |
 | **Jannatul Ferthaous** | Frontend Development, UI/UX Design |
-| **Ashikur Rahman** | Backend Development, Database Design, Documentation, Testing & Deployment |
+| **Ashikur Rahman** | Backend Development, Documentation, Testing & Validation |
 
 > This project was collaboratively developed as part of the **Cloud Computing Sessional** course for the **Department of Computer Science & Engineering, HSTU**.
 

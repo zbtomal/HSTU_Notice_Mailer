@@ -139,6 +139,8 @@ async def run_cron():
                 if should_send_emails:
                     cat_subs = category_subscribers.get(category.id, set())
                     target_emails = cat_subs.union(all_subscribers)
+                    if not target_emails:
+                        logger.info("No active subscribers found for category '%s' (Notice: %s).", category.name, db_notice.title)
                     for email in target_emails:
                         logger.info("Sending email to %s for notice: %s", email, db_notice.title)
                         # Send emails sequentially/synchronously since this runs in a cron worker process

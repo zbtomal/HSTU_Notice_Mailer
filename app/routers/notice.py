@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Query
+from fastapi import APIRouter, Depends, status, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, nullslast
 from sqlalchemy.orm import selectinload
@@ -15,6 +15,7 @@ router = APIRouter(
 
 @router.get("", response_model=List[NoticeRead])
 async def list_notices(
+    response: Response,
     limit: int = Query(20, ge=1, le=100),
     page: int = Query(1, ge=1),
     category_id: Optional[int] = None,
@@ -23,7 +24,10 @@ async def list_notices(
 ) -> Any:
     """
     Retrieve notices with optional pagination, category filtering, and search query.
+    Enables Vercel Edge CDN caching for lightning-fast response speeds.
     """
+    if not search:
+        response.headers["Cache-Control"] = "public, max-age=60, s-maxage=300, stale-while-revalidate=600"
     offset = (page - 1) * limit
     query = select(Notice).options(selectinload(Notice.category)).order_by(nullslast(desc(Notice.notice_date_parsed)), desc(Notice.id))
     

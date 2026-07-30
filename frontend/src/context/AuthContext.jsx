@@ -98,6 +98,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Instant local user state updater for Optimistic UI updates (0ms feedback)
+  const updateUserState = useCallback((updater) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      return typeof updater === 'function' ? updater(prevUser) : { ...prevUser, ...updater };
+    });
+  }, []);
+
   const value = {
     token,
     user,
@@ -106,6 +114,7 @@ export const AuthProvider = ({ children }) => {
     loginToken,
     logout,
     refreshUser,
+    updateUserState,
     toast,
     showToast,
     hideToast,

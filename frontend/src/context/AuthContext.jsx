@@ -68,11 +68,16 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [fetchUser]);
 
-  // Login handler
-  const loginToken = async (access_token) => {
+  // Login handler with single-response user data support
+  const loginToken = async (access_token, userData = null) => {
     localStorage.setItem('access_token', access_token);
     setToken(access_token);
-    await fetchUser(access_token);
+    if (userData) {
+      setUser(userData);
+      setLoading(false);
+    } else {
+      await fetchUser(access_token);
+    }
   };
 
   // Logout handler

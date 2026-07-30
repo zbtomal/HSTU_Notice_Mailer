@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { noticeApi, userApi } from '../api/client';
 import NoticeCard from './NoticeCard';
 import { ChevronLeft, ChevronRight, Layers } from 'lucide-react';
@@ -18,8 +18,21 @@ export default function NoticeFeed({ openAuthModal }) {
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
+  // In-memory notice cache for 0ms instant tab switching
+  const noticeCache = useRef({});
   const LIMIT = 12;
+
+  // Real-time 300ms Debounced Search Input handler
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput.trim() !== searchQuery) {
+        setSearchQuery(searchInput.trim());
+        setPage(1);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput, searchQuery]);
 
   // Fetch available categories
   useEffect(() => {
@@ -34,8 +47,18 @@ export default function NoticeFeed({ openAuthModal }) {
     loadCategories();
   }, []);
 
-  // Fetch notices according to current page, category_id, and search query
-  const loadNotices = useCallback(async () => {
+  // Fetch notices according to current page, category_id, and search query with 0ms cache support
+  const loadNotices = useCallback(async (ignoreCache = false) => {
+    const cacheKey = `${selectedCategory || 'all'}_${searchQuery || ''}_${page}`;
+    
+    // Check in-memory cache for instant 0ms retrieval
+    if (!ignoreCache && noticeCache.current[cacheKey]) {
+      setNotices(noticeCache.current[cacheKey]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -47,6 +70,7 @@ export default function NoticeFeed({ openAuthModal }) {
     });
 
     if (res.ok && Array.isArray(res.data)) {
+      noticeCache.current[cacheKey] = res.data;
       setNotices(res.data);
     } else {
       setError(res.error || 'Failed to fetch notices.');
@@ -88,7 +112,7 @@ export default function NoticeFeed({ openAuthModal }) {
         categoriesLoading={categoriesLoading}
         searchQuery={searchQuery}
         handleResetFilters={handleResetFilters}
-        loadNotices={loadNotices}
+        loadNotices={() => loadNotices(true)}
         loading={loading}
         setPage={setPage}
       />

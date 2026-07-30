@@ -7,7 +7,7 @@ import MasterFeedBanner from './dashboard/MasterFeedBanner';
 import CategoryCardGrid from './dashboard/CategoryCardGrid';
 
 export default function Dashboard({ openAuthModal, openProfileModal }) {
-  const { user, isAuthenticated, refreshUser, showToast } = useAuth();
+  const { user, isAuthenticated, updateUserState, showToast } = useAuth();
   const [togglingCategory, setTogglingCategory] = useState(null);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -60,37 +60,59 @@ export default function Dashboard({ openAuthModal, openProfileModal }) {
   // Master "All" is active if 'All' is in subscriptions OR if all individual department categories are subscribed
   const isAllSubscribed = subscribedCategoryNames.has('All') || (totalDeptCount > 0 && subscribedDeptCount === totalDeptCount);
 
-  // Handlers
+  // Handlers with Optimistic 0ms UI Updates
   const handleSubscribeAll = async () => {
+    const previousSubscriptions = user.subscriptions;
+    updateUserState({ subscriptions: categories });
+    showToast('Subscribed to ALL notice categories!', 'success');
+
     setIsTogglingAll(true);
     const res = await userApi.subscribeAll();
     setIsTogglingAll(false);
 
-    if (res.ok) {
-      await refreshUser();
-      showToast('Subscribed to ALL notice categories!', 'success');
-    } else {
+    if (!res.ok) {
+      updateUserState({ subscriptions: previousSubscriptions });
       showToast(res.error || 'Failed to subscribe to all categories.', 'error');
     }
   };
 
   const handleUnsubscribeAll = async () => {
+    const previousSubscriptions = user.subscriptions;
+    updateUserState({ subscriptions: [] });
+    showToast('Unsubscribed from all notice categories.', 'info');
+
     setIsTogglingAll(true);
     const res = await userApi.unsubscribeAll();
     setIsTogglingAll(false);
 
-    if (res.ok) {
-      await refreshUser();
-      showToast('Unsubscribed from all notice categories.', 'info');
-    } else {
+    if (!res.ok) {
+      updateUserState({ subscriptions: previousSubscriptions });
       showToast(res.error || 'Failed to unsubscribe from all categories.', 'error');
     }
   };
 
   const handleToggleSubscription = async (categoryName) => {
-    setTogglingCategory(categoryName);
+    const previousSubscriptions = user.subscriptions || [];
     const isCurrentlySubscribed = subscribedCategoryNames.has(categoryName);
+    
+    let newSubs;
+    if (isCurrentlySubscribed) {
+      newSubs = previousSubscriptions.filter(s => (typeof s === 'string' ? s : s.name) !== categoryName && (typeof s === 'string' ? s : s.name) !== 'All');
+    } else {
+      const catObj = categories.find(c => c.name === categoryName) || { name: categoryName };
+      newSubs = [...previousSubscriptions, catObj];
+    }
 
+    // Instant 0ms Optimistic UI Update
+    updateUserState({ subscriptions: newSubs });
+    showToast(
+      isCurrentlySubscribed 
+        ? `Unsubscribed from ${categoryName}.` 
+        : `Subscribed to ${categoryName} alerts!`,
+      'success'
+    );
+
+    setTogglingCategory(categoryName);
     let res;
     if (isCurrentlySubscribed) {
       if (subscribedCategoryNames.has('All')) {
@@ -100,36 +122,33 @@ export default function Dashboard({ openAuthModal, openProfileModal }) {
     } else {
       res = await userApi.subscribe(categoryName);
     }
+    setTogglingCategory(null);
 
-    if (res.ok) {
-      await refreshUser();
-      showToast(
-        isCurrentlySubscribed 
-          ? `Unsubscribed from ${categoryName}.` 
-          : `Subscribed to ${categoryName} alerts!`,
-        'success'
-      );
-    } else {
+    if (!res.ok) {
+      updateUserState({ subscriptions: previousSubscriptions });
       showToast(res.error || 'Failed to update subscription.', 'error');
     }
-    setTogglingCategory(null);
   };
 
   const handleToggleEmailPause = async () => {
+    const previousPauseState = user.is_email_paused;
+    const newPauseState = !previousPauseState;
+
+    // Instant 0ms Optimistic UI Update
+    updateUserState({ is_email_paused: newPauseState });
+    showToast(
+      newPauseState 
+        ? 'Email notifications paused. You will not receive emails until resumed.' 
+        : 'Email notifications resumed! You will receive new notice alerts.',
+      'info'
+    );
+
     setPauseLoading(true);
-    const newPauseState = !user.is_email_paused;
     const res = await userApi.updateProfile(undefined, newPauseState);
     setPauseLoading(false);
 
-    if (res.ok) {
-      await refreshUser();
-      showToast(
-        newPauseState 
-          ? 'Email notifications paused. You will not receive emails until resumed.' 
-          : 'Email notifications resumed! You will receive new notice alerts.',
-        'info'
-      );
-    } else {
+    if (!res.ok) {
+      updateUserState({ is_email_paused: previousPauseState });
       showToast(res.error || 'Failed to update notification status.', 'error');
     }
   };

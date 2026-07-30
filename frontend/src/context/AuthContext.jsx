@@ -68,11 +68,16 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [fetchUser]);
 
-  // Login handler
-  const loginToken = async (access_token) => {
+  // Login handler with single-response user data support
+  const loginToken = async (access_token, userData = null) => {
     localStorage.setItem('access_token', access_token);
     setToken(access_token);
-    await fetchUser(access_token);
+    if (userData) {
+      setUser(userData);
+      setLoading(false);
+    } else {
+      await fetchUser(access_token);
+    }
   };
 
   // Logout handler
@@ -93,6 +98,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Instant local user state updater for Optimistic UI updates (0ms feedback)
+  const updateUserState = useCallback((updater) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      return typeof updater === 'function' ? updater(prevUser) : { ...prevUser, ...updater };
+    });
+  }, []);
+
   const value = {
     token,
     user,
@@ -101,6 +114,7 @@ export const AuthProvider = ({ children }) => {
     loginToken,
     logout,
     refreshUser,
+    updateUserState,
     toast,
     showToast,
     hideToast,

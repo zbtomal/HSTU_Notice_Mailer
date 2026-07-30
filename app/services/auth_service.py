@@ -27,4 +27,13 @@ async def login_user(db: AsyncSession, login_data: UserLogin) -> Token:
         
     access_token = create_access_token(subject=user.email)
     
-    return Token(access_token=access_token, token_type="bearer")
+    # Reload user with subscriptions populated for single-response login
+    from sqlalchemy.orm import selectinload
+    from app.models.user import User
+    from sqlalchemy import select
+    
+    user_with_subs = await db.scalar(
+        select(User).options(selectinload(User.subscriptions)).where(User.id == user.id)
+    )
+    
+    return Token(access_token=access_token, token_type="bearer", user=user_with_subs)

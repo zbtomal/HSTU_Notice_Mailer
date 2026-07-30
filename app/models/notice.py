@@ -23,7 +23,7 @@ class Notice(Base):
     notice_link: Mapped[str] = mapped_column(String(1000), nullable=False)
     download_link: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     
-    category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
+    category_id: Mapped[int] = mapped_column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     # Relationships

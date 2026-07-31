@@ -15,8 +15,8 @@ from app.database import Base
 from app.models import Category, Notice, User, user_subscriptions
 
 config = context.config
-# Dynamically set DATABASE_URL from our settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Dynamically set DATABASE_URL from our settings (escaping % for configparser interpolation)
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

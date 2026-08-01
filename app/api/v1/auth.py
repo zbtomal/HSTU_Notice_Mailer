@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any
 
-from app.database import get_db
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas import (
     UserCreate,
@@ -19,7 +19,7 @@ from app.schemas import (
     RefreshTokenRequest
 )
 from app.services import user_service, auth_service
-from app.dependencies import get_current_active_user
+from app.api.dependencies import get_current_active_user
 
 router = APIRouter(
     prefix="/auth",
@@ -31,7 +31,7 @@ async def register(
     user_in: UserCreate,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Register a new user in the system.
+    """Register a new user in the system."""
     return await user_service.create_user(db, user_in)
 
 @router.post("/login", response_model=Token)
@@ -39,7 +39,7 @@ async def login(
     login_data: UserLogin,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Standard JSON login, returns access token and refresh token.
+    """Standard JSON login, returns access_token, refresh_token, and user profile."""
     return await auth_service.login_user(db, login_data)
 
 @router.post("/refresh", response_model=Token)
@@ -47,14 +47,14 @@ async def refresh_token(
     request: RefreshTokenRequest,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Refresh access token using a valid refresh token.
+    """Refresh access token using a valid refresh token."""
     return await auth_service.refresh_access_token(db, request.refresh_token)
 
 @router.get("/me", response_model=UserRead)
 async def read_current_user(
     current_user: User = Depends(get_current_active_user)
 ) -> Any:
-    # Get the details of the currently logged-in user.
+    """Get the details of the currently logged-in user."""
     return current_user
 
 @router.post("/verify-email", status_code=status.HTTP_200_OK)
@@ -62,7 +62,7 @@ async def verify_email(
     verify_data: UserVerify,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Verify a registered user's email using the OTP.
+    """Verify a registered user's email using OTP."""
     await user_service.verify_user_email(db, email=verify_data.email, otp=verify_data.otp)
     return {"message": "Email verified successfully"}
 
@@ -71,7 +71,7 @@ async def resend_otp(
     resend_data: UserResendOTP,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Resend the verification OTP to the user.
+    """Resend verification OTP to the user."""
     await user_service.resend_verification_otp(db, email=resend_data.email)
     return {"message": "Verification code resent successfully"}
 
@@ -80,7 +80,7 @@ async def forgot_password(
     request: ForgotPasswordRequest,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Initiate forgot password flow, sends a reset OTP via email.
+    """Initiate forgot password flow, sends a reset OTP via email."""
     await user_service.request_password_reset(db, email=request.email)
     return {"message": "Password reset verification code sent to your email"}
 
@@ -89,7 +89,7 @@ async def reset_password(
     request: ResetPasswordRequest,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Reset password using the reset OTP.
+    """Reset password using the reset OTP."""
     await user_service.reset_password(
         db, 
         email=request.email, 
@@ -103,8 +103,7 @@ async def login_for_swagger(
     db: AsyncSession = Depends(get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
-    # OAuth2 compatible token login, for Swagger UI 'Authorize' button.
-    # It converts form-data to UserLogin to reuse service logic.
+    """OAuth2 compatible token login for Swagger UI 'Authorize' button."""
     login_data = UserLogin(email=form_data.username, password=form_data.password)
     return await auth_service.login_user(db, login_data)
 
@@ -114,7 +113,7 @@ async def change_password(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Change the password of a logged-in user.
+    """Change password for a logged-in user."""
     await user_service.change_user_password(
         db,
         user=current_user,

@@ -9,7 +9,7 @@ from alembic import context
 
 # 1. Import settings and Base
 from app.core.config import settings
-from app.database import Base
+from app.db.session import Base
 
 # 2. Import ALL models so Alembic can detect them
 from app.models import Category, Notice, User, user_subscriptions

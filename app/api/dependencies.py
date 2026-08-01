@@ -6,10 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.core.config import settings
-from app.database import get_db
+from app.db.session import get_db
 from app.models.user import User
 from app.schemas import TokenData
-
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
@@ -17,6 +16,7 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db), 
     token: str = Depends(oauth2_scheme)
 ) -> User:
+    """Decodes JWT Bearer token and retrieves user model with loaded subscriptions."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -48,6 +48,7 @@ async def get_current_user(
 async def get_current_active_user(
     current_user: User = Depends(get_current_user),
 ) -> User:
+    """Verifies that current authenticated user has active status."""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user

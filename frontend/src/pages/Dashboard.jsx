@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { userApi } from '../api/client';
 import { Bell, ShieldCheck, Trash2, Building2 } from 'lucide-react';
-import DashboardHeader from './dashboard/DashboardHeader';
-import MasterFeedBanner from './dashboard/MasterFeedBanner';
-import CategoryCardGrid from './dashboard/CategoryCardGrid';
+import DashboardHeader from '../components/dashboard/DashboardHeader';
+import MasterFeedBanner from '../components/dashboard/MasterFeedBanner';
+import CategoryCardGrid from '../components/dashboard/CategoryCardGrid';
 
 export default function Dashboard({ openAuthModal, openProfileModal }) {
   const { user, isAuthenticated, updateUserState, showToast } = useAuth();

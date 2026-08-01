@@ -47,7 +47,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onSu
     setLoading(false);
 
     if (res.ok && res.data?.access_token) {
-      await loginToken(res.data.access_token, res.data.user);
+      await loginToken(res.data.access_token, res.data.user, res.data.refresh_token);
       showToast('Welcome back! Successfully signed in.', 'success');
       onClose();
       if (onSuccessLogin) onSuccessLogin();

@@ -15,7 +15,8 @@ from app.schemas import (
     UserCreateResponse,
     ForgotPasswordRequest,
     ResetPasswordRequest,
-    ChangePasswordRequest
+    ChangePasswordRequest,
+    RefreshTokenRequest
 )
 from app.services import user_service, auth_service
 from app.dependencies import get_current_active_user
@@ -38,8 +39,16 @@ async def login(
     login_data: UserLogin,
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Standard JSON login, returns access token.
+    # Standard JSON login, returns access token and refresh token.
     return await auth_service.login_user(db, login_data)
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    request: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db)
+) -> Any:
+    # Refresh access token using a valid refresh token.
+    return await auth_service.refresh_access_token(db, request.refresh_token)
 
 @router.get("/me", response_model=UserRead)
 async def read_current_user(

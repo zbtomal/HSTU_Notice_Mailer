@@ -1,9 +1,19 @@
-const BASE_URL = '/api/v1';
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+function subscribeTokenRefresh(cb) {
+  refreshSubscribers.push(cb);
+}
+
+function onRefreshed(newToken) {
+  refreshSubscribers.forEach((cb) => cb(newToken));
+  refreshSubscribers = [];
+}
 
 /**
  * Custom API Client helper for HSTU Notice Mailer backend
  */
-export async function apiRequest(endpoint, { method = 'GET', body, headers = {}, token = null } = {}) {
+export async function apiRequest(endpoint, { method = 'GET', body, headers = {}, token = null, isRetry = false } = {}) {
   const authToken = token || localStorage.getItem('access_token');
   
   const config = {
@@ -25,6 +35,36 @@ export async function apiRequest(endpoint, { method = 'GET', body, headers = {},
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
     
+    // Automatic Silent Refresh on 401 Unauthorized
+    if (response.status === 401 && !isRetry && endpoint !== '/auth/login' && endpoint !== '/auth/refresh') {
+      const storedRefreshToken = localStorage.getItem('refresh_token');
+      if (storedRefreshToken) {
+        if (!isRefreshing) {
+          isRefreshing = true;
+          const refreshRes = await authApi.refreshToken(storedRefreshToken);
+          isRefreshing = false;
+          if (refreshRes.ok && refreshRes.data?.access_token) {
+            const newAccessToken = refreshRes.data.access_token;
+            localStorage.setItem('access_token', newAccessToken);
+            if (refreshRes.data.refresh_token) {
+              localStorage.setItem('refresh_token', refreshRes.data.refresh_token);
+            }
+            onRefreshed(newAccessToken);
+            return apiRequest(endpoint, { method, body, headers, token: newAccessToken, isRetry: true });
+          } else {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+          }
+        } else {
+          return new Promise((resolve) => {
+            subscribeTokenRefresh((newToken) => {
+              resolve(apiRequest(endpoint, { method, body, headers, token: newToken, isRetry: true }));
+            });
+          });
+        }
+      }
+    }
+
     // Handle 204 No Content
     if (response.status === 204) {
       return { ok: true, data: null };
@@ -58,6 +98,9 @@ export const authApi = {
 
   login: (email, password) => 
     apiRequest('/auth/login', { method: 'POST', body: { email, password } }),
+
+  refreshToken: (refresh_token) =>
+    apiRequest('/auth/refresh', { method: 'POST', body: { refresh_token } }),
 
   getMe: (token) => 
     apiRequest('/auth/me', { method: 'GET', token }),

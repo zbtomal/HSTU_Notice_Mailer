@@ -68,9 +68,12 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [fetchUser]);
 
-  // Login handler with single-response user data support
-  const loginToken = async (access_token, userData = null) => {
+  // Login handler with single-response user data & refresh token support
+  const loginToken = async (access_token, userData = null, refresh_token = null) => {
     localStorage.setItem('access_token', access_token);
+    if (refresh_token) {
+      localStorage.setItem('refresh_token', refresh_token);
+    }
     setToken(access_token);
     if (userData) {
       setUser(userData);
@@ -83,6 +86,7 @@ export const AuthProvider = ({ children }) => {
   // Logout handler
   const logout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     setToken(null);
     setUser(null);
     showToast('Successfully logged out.', 'info');

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status, Header, HTTPException, Backgroun
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Dict, Any
 
-from app.database import get_db
+from app.db.session import get_db
 from app.services import notice_service
 from app.core.config import settings
 
@@ -18,7 +18,7 @@ async def scraper_webhook(
     authorization: str = Header(None),
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Verify scraper API key to prevent unauthorized execution
+    """Verify scraper API key and process submitted notice batch."""
     expected_token = f"Bearer {settings.SCRAPER_API_KEY}"
     if not authorization or authorization != expected_token:
         raise HTTPException(
@@ -26,14 +26,13 @@ async def scraper_webhook(
             detail="Unauthorized scraper request"
         )
         
-    # Endpoint for GitHub Actions scraper to submit newly scraped notices.
     return await notice_service.process_scraped_notices(db, payload, background_tasks)
 
 @router.get("/last-id", status_code=status.HTTP_200_OK)
 async def get_last_notice_id(
     db: AsyncSession = Depends(get_db)
 ) -> Any:
-    # Retrieve the latest notice ID from the database to avoid committing last_notice_id.txt to Git.
+    """Retrieve the latest notice ID from database."""
     from app.models.notice import Notice
     from sqlalchemy import select, desc
     

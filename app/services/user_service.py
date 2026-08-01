@@ -4,17 +4,26 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
+from sqlalchemy.orm import selectinload
 
 from app.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import get_password_hash, verify_password
-from app.services.email_services import send_verification_otp
+from app.services.email_services import send_verification_otp, send_reset_password_otp
+from app.services.subscription_service import (
+    subscribe_user_to_category,
+    unsubscribe_user_from_category,
+    subscribe_user_to_all_categories,
+    unsubscribe_user_from_all_categories
+)
 
 async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
+    """Retrieves a user by email address."""
     result = await db.execute(select(User).where(User.email == email))
     return result.scalar_one_or_none()
 
 async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
+    """Registers a new user and dispatches a verification OTP email."""
     existing_user = await get_user_by_email(db, user_in.email)
     if existing_user:
         raise HTTPException(
@@ -47,8 +56,6 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
         logger = logging.getLogger("user_service")
         logger.error(f"Failed to send verification OTP to {db_user.email}")
         
-    # Reload user with subscriptions loaded before returning to avoid MissingGreenlet serializer error
-    from sqlalchemy.orm import selectinload
     refreshed_user = await db.scalar(
         select(User)
         .options(selectinload(User.subscriptions))
@@ -59,6 +66,7 @@ async def create_user(db: AsyncSession, user_in: UserCreate) -> User:
 async def authenticate_user(
     db: AsyncSession, email: str, password: str
 ) -> User | None:
+    """Authenticates user credentials against stored bcrypt password hash."""
     user = await get_user_by_email(db, email)
     if not user:
         return None
@@ -66,78 +74,8 @@ async def authenticate_user(
         return None
     return user
 
-async def subscribe_user_to_category(
-    db: AsyncSession, user: User, category_name: str
-) -> User:
-    """
-    Subscribes a user to a notice category.
-    """
-    from app.services.notice_service import get_or_create_category
-    from app.models.user import user_subscriptions
-    from sqlalchemy.orm import selectinload
-    
-    category = await get_or_create_category(db, category_name)
-    
-    # Check if already subscribed
-    query = select(user_subscriptions).where(
-        user_subscriptions.c.user_id == user.id,
-        user_subscriptions.c.category_id == category.id
-    )
-    result = await db.execute(query)
-    if not result.first():
-        await db.execute(
-            user_subscriptions.insert().values(user_id=user.id, category_id=category.id)
-        )
-        await db.commit()
-        
-    user_id = user.id
-    # Expire user cache so SQLAlchemy reloads relationship on query
-    db.expire(user)
-        
-    # Reload user with updated subscriptions
-    refreshed_user = await db.scalar(
-        select(User)
-        .options(selectinload(User.subscriptions))
-        .where(User.id == user_id)
-    )
-    return refreshed_user
-
-async def unsubscribe_user_from_category(
-    db: AsyncSession, user: User, category_name: str
-) -> User:
-    """
-    Unsubscribes a user from a notice category.
-    """
-    from app.services.notice_service import get_or_create_category
-    from app.models.user import user_subscriptions
-    from sqlalchemy.orm import selectinload
-    
-    category = await get_or_create_category(db, category_name)
-    
-    await db.execute(
-        user_subscriptions.delete().where(
-            user_subscriptions.c.user_id == user.id,
-            user_subscriptions.c.category_id == category.id
-        )
-    )
-    await db.commit()
-    
-    user_id = user.id
-    # Expire user cache so SQLAlchemy reloads relationship on query
-    db.expire(user)
-    
-    # Reload user with updated subscriptions
-    refreshed_user = await db.scalar(
-        select(User)
-        .options(selectinload(User.subscriptions))
-        .where(User.id == user_id)
-    )
-    return refreshed_user
-
 async def verify_user_email(db: AsyncSession, email: str, otp: str) -> bool:
-    """
-    Verifies user's email using the OTP.
-    """
+    """Verifies user's email address using OTP code."""
     user = await get_user_by_email(db, email)
     if not user:
         raise HTTPException(
@@ -169,9 +107,7 @@ async def verify_user_email(db: AsyncSession, email: str, otp: str) -> bool:
     return True
 
 async def resend_verification_otp(db: AsyncSession, email: str) -> bool:
-    """
-    Generates a new verification OTP and sends it to the user.
-    """
+    """Generates and resends a fresh verification OTP."""
     user = await get_user_by_email(db, email)
     if not user:
         raise HTTPException(
@@ -199,9 +135,7 @@ async def resend_verification_otp(db: AsyncSession, email: str) -> bool:
     return True
 
 async def request_password_reset(db: AsyncSession, email: str) -> bool:
-    """
-    Generates a password reset OTP and sends it via email.
-    """
+    """Generates a password reset OTP and sends it via email."""
     user = await get_user_by_email(db, email)
     if not user:
         raise HTTPException(
@@ -221,7 +155,6 @@ async def request_password_reset(db: AsyncSession, email: str) -> bool:
     user.reset_otp_expires_at = expires_at
     await db.commit()
     
-    from app.services.email_services import send_reset_password_otp
     email_sent = await send_reset_password_otp(user.email, otp)
     if not email_sent:
         logger = logging.getLogger("user_service")
@@ -230,9 +163,7 @@ async def request_password_reset(db: AsyncSession, email: str) -> bool:
     return True
 
 async def reset_password(db: AsyncSession, email: str, otp: str, new_password: str) -> bool:
-    """
-    Verifies the reset OTP and resets the user's password.
-    """
+    """Verifies password reset OTP and updates user's password."""
     user = await get_user_by_email(db, email)
     if not user:
         raise HTTPException(
@@ -245,7 +176,6 @@ async def reset_password(db: AsyncSession, email: str, otp: str, new_password: s
             detail="Invalid reset code",
         )
         
-    # Check expiry
     now = datetime.now(timezone.utc)
     if user.reset_otp_expires_at < now:
         raise HTTPException(
@@ -253,7 +183,6 @@ async def reset_password(db: AsyncSession, email: str, otp: str, new_password: s
             detail="Reset code expired",
         )
         
-    # Hash new password and clear OTP columns
     user.hashed_password = get_password_hash(new_password)
     user.reset_password_otp = None
     user.reset_otp_expires_at = None
@@ -262,9 +191,7 @@ async def reset_password(db: AsyncSession, email: str, otp: str, new_password: s
     return True
 
 async def change_user_password(db: AsyncSession, user: User, old_password: str, new_password: str) -> bool:
-    """
-    Changes a user's password after verifying their old password.
-    """
+    """Verifies old password and updates user's password."""
     if not verify_password(old_password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -277,9 +204,7 @@ async def change_user_password(db: AsyncSession, user: User, old_password: str, 
 async def update_user_profile(
     db: AsyncSession, user: User, full_name: str | None = None, is_email_paused: bool | None = None
 ) -> User:
-    """
-    Updates user profile information such as full name or is_email_paused toggle.
-    """
+    """Updates user profile information (full_name or is_email_paused flag)."""
     if full_name is not None:
         user.full_name = full_name
     if is_email_paused is not None:
@@ -289,66 +214,9 @@ async def update_user_profile(
     user_id = user.id
     db.expire(user)
     
-    from sqlalchemy.orm import selectinload
     refreshed_user = await db.scalar(
         select(User)
         .options(selectinload(User.subscriptions))
         .where(User.id == user_id)
     )
     return refreshed_user
-
-async def subscribe_user_to_all_categories(db: AsyncSession, user: User) -> User:
-    """
-    Subscribes a user to ALL categories in the database.
-    """
-    from app.models.category import Category
-    from app.models.user import user_subscriptions
-    from sqlalchemy.orm import selectinload
-    
-    categories_res = await db.execute(select(Category))
-    all_cats = categories_res.scalars().all()
-    
-    # Get user's existing subscription category_ids
-    existing_subs_res = await db.execute(
-        select(user_subscriptions.c.category_id).where(user_subscriptions.c.user_id == user.id)
-    )
-    existing_cat_ids = set(existing_subs_res.scalars().all())
-    
-    new_inserts = [
-        {"user_id": user.id, "category_id": cat.id}
-        for cat in all_cats if cat.id not in existing_cat_ids
-    ]
-    if new_inserts:
-        await db.execute(user_subscriptions.insert(), new_inserts)
-        await db.commit()
-        
-    user_id = user.id
-    db.expire(user)
-    
-    refreshed_user = await db.scalar(
-        select(User)
-        .options(selectinload(User.subscriptions))
-        .where(User.id == user_id)
-    )
-    return refreshed_user
-
-async def unsubscribe_user_from_all_categories(db: AsyncSession, user: User) -> User:
-    """
-    Unsubscribes a user from ALL categories.
-    """
-    from app.models.user import user_subscriptions
-    from sqlalchemy.orm import selectinload
-    
-    await db.execute(user_subscriptions.delete().where(user_subscriptions.c.user_id == user.id))
-    await db.commit()
-    
-    user_id = user.id
-    db.expire(user)
-    
-    refreshed_user = await db.scalar(
-        select(User)
-        .options(selectinload(User.subscriptions))
-        .where(User.id == user_id)
-    )
-    return refreshed_user
-

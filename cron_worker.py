@@ -8,7 +8,7 @@ from datetime import date
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from sqlalchemy import select, desc, func
-from app.database import AsyncSessionLocal
+from app.db.session import AsyncSessionLocal
 from app.models.notice import Notice
 from app.models.category import Category
 from app.models.user import User, user_subscriptions

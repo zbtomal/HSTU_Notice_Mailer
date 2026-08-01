@@ -3,10 +3,10 @@ import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-r
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import NoticeFeed from './components/NoticeFeed';
-import Dashboard from './components/Dashboard';
+import Dashboard from './pages/Dashboard';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
-import PrivacyPolicy from './components/PrivacyPolicy';
 import Toast from './components/Toast';
 import { ExternalLink, ShieldCheck } from 'lucide-react';
 

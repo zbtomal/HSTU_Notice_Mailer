@@ -3,10 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from app.routers.auth import router as auth_router
-from app.routers.scraper import router as scraper_router
-from app.routers.users import router as users_router
-from app.routers.notice import router as notice_router
+from app.api.v1.router import api_router
 
 app = FastAPI(
     title="HSTU Notice Mailer",
@@ -30,10 +27,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("hstu_notice_mailer")
 
-app.include_router(auth_router, prefix="/api/v1")
-app.include_router(scraper_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
-app.include_router(notice_router, prefix="/api/v1")
+# Include central API v1 router
+app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

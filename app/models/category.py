@@ -2,7 +2,7 @@ from datetime import datetime
 from sqlalchemy import Integer, String, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.db.session import Base
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:

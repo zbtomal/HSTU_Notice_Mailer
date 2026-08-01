@@ -4,7 +4,7 @@ from sqlalchemy import select, desc, nullslast
 from sqlalchemy.orm import selectinload
 from typing import Any, List, Optional
 
-from app.database import get_db
+from app.db.session import get_db
 from app.models.notice import Notice
 from app.schemas.notice import NoticeRead
 

@@ -1,3 +1,5 @@
+const BASE_URL = '/api/v1';
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 

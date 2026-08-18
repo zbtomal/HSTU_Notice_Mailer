@@ -33,14 +33,14 @@ async def send_email(to_email: str, subject: str, html_content: str) -> bool:
         
 async def send_notice_email(to_email: str, notice_title: str, notice_link: str) -> bool:
     # Constructs and sends a notice notification email to a user.
-    subject = f"New Notice: {notice_title}"
+    subject = notice_title
     html_content = f"""
     <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <h2>New Notice Published</h2>
+            <h2>HSTU Notice Update</h2>
             <p><strong>{notice_title}</strong></p>
             <p>You can view or download the notice using the link below:</p>
-            <p><a href="{notice_link}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">View Notice</a></p>
+            <p><a href="{notice_link}" style="background-color: #0d9488; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">View Notice</a></p>
         </body>
     </html>
     """
